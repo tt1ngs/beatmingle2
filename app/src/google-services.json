@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "127042809135",
+    "project_id": "beatmingle-b4205",
+    "storage_bucket": "beatmingle-b4205.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:127042809135:android:a6786369d63a4d49f985da",
+        "android_client_info": {
+          "package_name": "com.ttings.beatwave"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNc6JCxExKdVLv-MOTeDBWZ7oTchSO91I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
