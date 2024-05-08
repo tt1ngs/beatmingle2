@@ -120,6 +120,9 @@ fun AppNavigation() {
             composable("LibUploadScreen") {
                 LibUploadScreen(navController, playerViewModel)
             }
+            composable("FeedScreen") {
+                FeedScreen()
+            }
         }
     }
 }

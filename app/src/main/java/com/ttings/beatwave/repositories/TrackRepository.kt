@@ -3,11 +3,15 @@ package com.ttings.beatwave.repositories
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import androidx.core.net.toUri
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.getValue
 import com.google.firebase.storage.FirebaseStorage
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
+import com.ttings.beatwave.ui.screens.TrackPagingSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -278,13 +282,41 @@ class TrackRepository @Inject constructor(
         return trackId in likedTrackIds
     }
     suspend fun removeTrackFromLibrary(trackId: String, currentUser: User) {
+        // Удаление трека из списка понравившихся треков пользователя
         val userLikesRef = database.getReference("users").child(currentUser.userId).child("likedTracks")
-        val snapshot = userLikesRef.get().await()
-        val userLikedTrackIds = snapshot.getValue<MutableList<String>>() ?: mutableListOf()
-
+        val userLikesSnapshot = userLikesRef.get().await()
+        val userLikedTrackIds = userLikesSnapshot.getValue<MutableList<String>>() ?: mutableListOf()
         if (trackId in userLikedTrackIds) {
             userLikedTrackIds.remove(trackId)
             userLikesRef.setValue(userLikedTrackIds).await()
         }
+
+        // Удаление пользователя из списка пользователей, которые лайкнули трек
+        val trackLikesRef = database.getReference("likes").child(trackId)
+        val trackLikesSnapshot = trackLikesRef.get().await()
+        val trackLikedUserIds = trackLikesSnapshot.getValue<MutableList<String>>() ?: mutableListOf()
+        if (currentUser.userId in trackLikedUserIds) {
+            trackLikedUserIds.remove(currentUser.userId)
+            trackLikesRef.setValue(trackLikedUserIds).await()
+        }
+    }
+
+    fun getTracks(): Flow<PagingData<Track>> {
+        return Pager(
+            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+            pagingSourceFactory = { TrackPagingSource(database) }
+        ).flow
+    }
+
+    suspend fun isLiked(currentUser: User, trackId: String): Boolean {
+        if (currentUser != null) {
+            val trackLikesRef = database.getReference("likes").child(trackId)
+            val snapshot = trackLikesRef.get().await()
+            val userIds = snapshot.getValue<MutableList<String>>() ?: mutableListOf()
+            if (currentUser.userId in userIds) {
+                return true
+            }
+        }
+        return false
     }
 }

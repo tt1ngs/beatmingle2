@@ -46,4 +46,6 @@
     <string name="album">Album</string>
     <string name="uploads">Uploads</string>
     <string name="no_liked_tracks">You don\'t have any favorites yet. It\'s time to fix it!</string>
+    <string name="following">Following</string>
+    <string name="follow">Follow</string>
 </resources>

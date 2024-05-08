@@ -21,7 +21,6 @@ import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.SearchField
 import com.ttings.beatwave.ui.components.TopAppBar
 import com.ttings.beatwave.ui.components.TrackBar
-import com.ttings.beatwave.viewmodels.LibUploadsViewModel
 import com.ttings.beatwave.viewmodels.PlayerViewModel
 import timber.log.Timber
 
