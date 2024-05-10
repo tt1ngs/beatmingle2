@@ -42,10 +42,15 @@
     <string name="empty_image">Select a track cover</string>
     <string name="success_message">The upload was completed successfully</string>
     <string name="liked_tracks">Liked tracks</string>
-    <string name="playlist">Playlist</string>
-    <string name="album">Album</string>
+    <string name="playlist">Playlists</string>
+    <string name="album">Albums</string>
     <string name="uploads">Uploads</string>
     <string name="no_liked_tracks">You don\'t have any favorites yet. It\'s time to fix it!</string>
-    <string name="following">Following</string>
+    <string name="followed">Followed</string>
     <string name="follow">Follow</string>
+    <string name="following">Following</string>
+    <string name="followers">Followers</string>
+    <string name="loading">Loading</string>
+    <string name="tracks">Tracks</string>
+    <string name="see_all">See All</string>
 </resources>

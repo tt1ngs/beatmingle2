@@ -46,6 +46,11 @@
     <string name="album">Альбомы</string>
     <string name="uploads">Загрузки</string>
     <string name="no_liked_tracks">У вас еще нет избранных песен. Пора исправлять!</string>
-    <string name="following">Подписан</string>
+    <string name="followed">Подписан</string>
     <string name="follow">Подписаться</string>
+    <string name="following">Подписки</string>
+    <string name="followers">Подписчики</string>
+    <string name="loading">Загрузка</string>
+    <string name="tracks">Треки</string>
+    <string name="see_all">Ещё</string>
 </resources>

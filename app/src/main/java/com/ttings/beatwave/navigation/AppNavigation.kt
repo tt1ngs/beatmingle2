@@ -121,7 +121,16 @@ fun AppNavigation() {
                 LibUploadScreen(navController, playerViewModel)
             }
             composable("FeedScreen") {
-                FeedScreen()
+                FeedScreen(navController)
+            }
+            composable("ProfileScreen/{userId}") { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                if (userId != null) {
+                    ProfileScreen(userId, navController)
+                } else {
+                    navController.popBackStack()
+                    Timber.tag("AppNavigation").e("Error getting userId")
+                }
             }
         }
     }

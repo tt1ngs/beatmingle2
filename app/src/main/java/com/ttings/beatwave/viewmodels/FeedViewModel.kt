@@ -1,5 +1,7 @@
 package com.ttings.beatwave.viewmodels
 
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -24,6 +26,9 @@ class FeedViewModel @Inject constructor(
 ) : ViewModel() {
     val tracks = trackRepository.getTracks().cachedIn(viewModelScope)
 
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user.asStateFlow()
 
@@ -31,6 +36,41 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             _user.value = userRepository.getCurrentUser()
         }
+    }
+
+    private var mediaPlayer: MediaPlayer? = null
+
+    fun togglePlayPause(track: Track) {
+        if (mediaPlayer?.isPlaying == true) {
+            mediaPlayer?.pause()
+            _isPlaying.value = false
+        } else {
+            if (mediaPlayer == null) {
+                mediaPlayer = MediaPlayer().apply {
+                    setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .build()
+                    )
+                    setDataSource(track.file)
+                    prepareAsync()
+                    setOnPreparedListener {
+                        start()
+                        _isPlaying.value = true
+                    }
+                }
+            } else {
+                mediaPlayer?.start()
+                _isPlaying.value = true
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     suspend fun getAuthorById(id: String): User? {

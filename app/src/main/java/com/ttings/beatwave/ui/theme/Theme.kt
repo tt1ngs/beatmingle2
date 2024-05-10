@@ -76,5 +76,6 @@ fun BeatwaveTheme(
 val Shapes = Shapes(
     small = RoundedCornerShape(4.dp),
     medium = RoundedCornerShape(8.dp),
-    large = RoundedCornerShape(10.dp)
+    large = RoundedCornerShape(10.dp),
+    extraLarge = RoundedCornerShape(10)
 )

@@ -11,15 +11,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ttings.beatwave.R
+import com.ttings.beatwave.data.User
 import com.ttings.beatwave.ui.components.TopAppBar
 import com.ttings.beatwave.ui.theme.Typography
+import com.ttings.beatwave.viewmodels.ProfileViewModel
 
 @Composable
 fun LibraryScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
+    val user = viewModel.currentUser
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -39,7 +45,11 @@ fun LibraryScreen(
                 }
                 IconButton(
                     onClick = {
-                        /*TODO*/
+                        if (user != null) {
+                            navController.navigate("ProfileScreen/${user.value!!.userId}")
+                        } else {
+                            navController.navigate("LoginScreen")
+                        }
                     }
                 ) {
                     Icon(

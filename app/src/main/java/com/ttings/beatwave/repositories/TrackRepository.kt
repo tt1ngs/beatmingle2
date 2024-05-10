@@ -9,6 +9,7 @@ import androidx.paging.PagingData
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.getValue
 import com.google.firebase.storage.FirebaseStorage
+import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.ui.screens.TrackPagingSource
@@ -142,6 +143,15 @@ class TrackRepository @Inject constructor(
         }
     }
 
+    private suspend fun getPlaylistById(id: String, type: String): Playlist? {
+        Timber.d("Attempting to fetch $type with ID: $id")
+        val ref = database.getReference(type).child(id)
+        val snapshot = ref.get().await()
+        return snapshot.getValue(Playlist::class.java).also {
+            if (it == null) Timber.e("No $type found for ID: $id")
+        }
+    }
+
     fun getTracksByPlaylist(playlistId: String): Flow<List<Track>> = flow {
         val path = "playlists/$playlistId"
         val dataSnapshot = database.getReference(path).get().await()
@@ -170,6 +180,16 @@ class TrackRepository @Inject constructor(
             trackId?.let { getTrackById(it) }
         }.filterNotNull()
         emit(trackIds)
+    }
+
+    fun getPlaylistsByUser(userId: String, type: String): Flow<List<Playlist>> = flow {
+        val path = "users/$userId/uploads/$type"
+        val dataSnapshot = database.getReference(path).get().await()
+        val itemIds = dataSnapshot.children.mapNotNull { snapshot ->
+            val itemId = snapshot.getValue(String::class.java)
+            itemId?.let { getPlaylistById(it, type) }
+        }.filterNotNull()
+        emit(itemIds)
     }
 
     fun setupMediaPlayer(track: Track, queue: List<Track>) {

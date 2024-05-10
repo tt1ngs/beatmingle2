@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,7 +38,7 @@ fun TrackBar(
             .width(332.dp)
             .height(75.dp)
             .clip(shape = RoundedCornerShape(16.dp))
-            .background(LightGray)
+            .background(MaterialTheme.colorScheme.secondary)
             .clickable(onClick = { onTrackClick(track) })
     ) {
         Box(

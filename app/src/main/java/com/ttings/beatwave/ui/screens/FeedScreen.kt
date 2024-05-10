@@ -9,6 +9,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.ui.components.TrackCard
@@ -18,10 +19,12 @@ import timber.log.Timber
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FeedScreen(
+    navController: NavController,
     viewModel: FeedViewModel = hiltViewModel()
 ) {
     val tracks = viewModel.tracks.collectAsLazyPagingItems()
     val pagerState = rememberPagerState(pageCount = { tracks.itemCount })
+    val isPlaying by viewModel.isPlaying.collectAsState()
 
     if (tracks.itemCount > 0) {
         VerticalPager(state = pagerState) { page ->
@@ -53,29 +56,50 @@ fun FeedScreen(
                     }
                 }
 
-                TrackCard(
-                    track = track,
-                    isLiked = isLiked,
-                    isFollowed = isFollowing,
-                    onLikeClick = {
-                        if (isLiked) {
-                            viewModel.deleteTrackFromLibrary(track.trackId)
-                        } else {
-                            viewModel.addTrackToLibrary(track.trackId)
+                if (tracks.itemCount > 0) {
+                    VerticalPager(state = pagerState, onPageChange = { page ->
+                        if (isPlaying) {
+                            viewModel.stopPlayback()
                         }
-                    },
-                    onCommentClick = { /*TODO: onCommentClick FeedScreen*/ },
-                    onAuthorClick = { /*TODO*/ },
-                    onFollowClick = {
-                        if (isFollowing) {
-                            viewModel.unfollowUser(track.artistIds.first())
-                        } else {
-                            viewModel.followUser(track.artistIds.first())
-                        }
-                    },
-                    onAddToPlaylist = { /*TODO*/ },
-                    author = author ?: User("")
-                )
+                    }) { page ->
+                        TrackCard(
+                            track = track,
+                            isLiked = isLiked,
+                            isPlaying = isPlaying,
+                            isFollowed = isFollowing,
+                            onPlayPauseClick = { viewModel.togglePlayPause(track) },
+                            onLikeClick = {
+                                if (isLiked) {
+                                    viewModel.deleteTrackFromLibrary(track.trackId)
+                                } else {
+                                    viewModel.addTrackToLibrary(track.trackId)
+                                }
+                            },
+                            onCommentClick = { /*TODO: onCommentClick FeedScreen*/ },
+                            onAuthorClick = {
+                                if (author != null) {
+                                    val userId = author?.userId
+                                    navController.navigate("ProfileScreen/${userId}")
+                                } else {
+                                    Timber.d("Author == null")
+                                }
+                            },
+                            onFollowClick = {
+                                if (isFollowing) {
+                                    viewModel.unfollowUser(track.artistIds.first())
+                                } else {
+                                    viewModel.followUser(track.artistIds.first())
+                                }
+                            },
+                            onAddToPlaylist = { /*TODO*/ },
+                            author = author ?: User("")
+                        )
+                    }
+                } else {
+                    Text(text = "No tracks found")
+                }
+
+
             }
         }
     } else {

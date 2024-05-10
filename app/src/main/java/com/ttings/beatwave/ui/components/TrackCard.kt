@@ -1,6 +1,5 @@
 package com.ttings.beatwave.ui.components
 
-import android.os.Bundle
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,9 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +27,9 @@ import com.ttings.beatwave.data.User
 fun TrackCard(
     track: Track,
     isLiked: Boolean,
+    isPlaying: Boolean,
     isFollowed: Boolean,
+    onPlayPauseClick: () -> Unit,
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit,
     onAuthorClick: () -> Unit,
@@ -41,15 +39,15 @@ fun TrackCard(
 
 ) {
     
-    OutlinedCard(
+    Card(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp, 32.dp),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.extraLarge
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(10.dp))) {
+            .clip(RoundedCornerShape(10))) {
             Image(
                 painter = rememberImagePainter(data = track.image),
                 contentDescription = null,
@@ -130,7 +128,8 @@ fun TrackCard(
                                         contentDescription = "Author Image",
                                         modifier = Modifier
                                             .size(36.dp)
-                                            .clip(CircleShape)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
                                     )
                                     Text(
                                         text = author.username ?: "",
@@ -146,18 +145,17 @@ fun TrackCard(
                                 }
                             ) {
                                 Text(
-                                    text = if (isFollowed) stringResource(R.string.following) else stringResource(R.string.follow)
+                                    text = if (isFollowed) stringResource(R.string.followed) else stringResource(R.string.follow)
                                 )
                             }
                         }
                     }
                     Spacer(modifier = Modifier.weight(0.1f))
                     IconButton(onClick = {
-                        /* TODO: onPlayPauseClick */
-                    },
-                        modifier = Modifier.border(1.dp, Color.White, CircleShape)) {
+                        onPlayPauseClick()
+                    }) {
                         Icon(
-                            imageVector = Icons.Rounded.Pause, // if (exoPlayer.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                            imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                             contentDescription = "Play/Pause",
                             tint = Color.White,
                             modifier = Modifier
