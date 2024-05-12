@@ -22,9 +22,9 @@ private val DarkColorScheme = darkColorScheme(
     primary = White,
     onPrimary = Black,
     secondary = DarkGray,  // Для выделения активных элементов
+    onSecondary = LightGray,
     secondaryContainer = DarkGray,
-    onSecondaryContainer = White,
-    onSecondary = White,
+    onSecondaryContainer = White
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -34,10 +34,10 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Black,
     primary = Black,
     onPrimary = White,
-    secondary = com.ttings.beatwave.ui.theme.LightGray,  // Аналогично для светлой темы
+    secondary = LightGray,  // Аналогично для светлой темы
     secondaryContainer = LightGray,
     onSecondaryContainer = Black,
-    onSecondary = Black,
+    onSecondary = DarkGray,
 )
 
 @Composable

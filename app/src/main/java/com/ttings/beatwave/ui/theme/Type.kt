@@ -17,6 +17,13 @@ val Typography = Typography(
         lineHeight = 38.sp, //38
         letterSpacing = 0.5.sp
     ),
+    displayLarge = TextStyle(
+        fontFamily = FontFamily(Font(R.font.comfortaa)),
+        fontWeight = FontWeight.Normal,
+        fontSize = 48.sp, //48
+        lineHeight = 50.sp, //56
+        letterSpacing = 0.75.sp
+    ),
     titleMedium = TextStyle(
         fontFamily = FontFamily(Font(R.font.comfortaa)),
         fontWeight = FontWeight.Normal,

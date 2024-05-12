@@ -1,33 +1,60 @@
 package com.ttings.beatwave.ui.components
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Error
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.ttings.beatwave.R
+import com.ttings.beatwave.ui.theme.Typography
 
 @Composable
 fun ErrorBox(
     errorMessage: String,
     bottomPadding: Int = 0,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onConfirmation: () -> Unit
 ) {
-    Column{
-        Snackbar(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = bottomPadding.dp),
-            action = {
-                TextButton(onClick = { onDismiss() }) {
-                    Text("Dismiss")
-                }
+
+    AlertDialog(
+        icon = {
+            Icon(
+                imageVector = Icons.TwoTone.Error,
+                contentDescription = "Error icon",
+                tint = MaterialTheme.colorScheme.error
+            )
+        },
+        title = {
+            Text(
+                text = stringResource(id = R.string.error),
+                style = Typography.bodyMedium
+            )
+        },
+        text = {
+            Text(
+                text = errorMessage,
+                style = Typography.bodyMedium
+            )
+        },
+        onDismissRequest = {
+            onDismiss()
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirmation() }) {
+                Text(
+                    text = stringResource(id = R.string.confirm),
+                    style = Typography.bodyMedium
+                )
             }
-        ) {
-            Text(errorMessage)
-        }
-    }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text(
+                    text = stringResource(id = R.string.dismiss),
+                    style = Typography.bodyMedium
+                )
+            }
+        },
+
+    )
 }

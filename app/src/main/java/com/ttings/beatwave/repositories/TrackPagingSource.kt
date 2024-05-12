@@ -1,5 +1,3 @@
-package com.ttings.beatwave.ui.screens
-
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.google.firebase.database.FirebaseDatabase

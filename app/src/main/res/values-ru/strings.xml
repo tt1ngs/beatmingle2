@@ -39,7 +39,7 @@
     <string name="cancel">Назад</string>
     <string name="select_genre">Выбор жанра</string>
     <string name="empty_title">Введите название трека</string>
-    <string name="empty_image">Выберите обложку трека</string>
+    <string name="empty_image">Выберите обложку</string>
     <string name="success_message">Загрузка выполнена успешно</string>
     <string name="liked_tracks">Избранное</string>
     <string name="playlist">Плейлисты</string>
@@ -53,4 +53,12 @@
     <string name="loading">Загрузка</string>
     <string name="tracks">Треки</string>
     <string name="see_all">Ещё</string>
+    <string name="create_playlist">Создать плейлист</string>
+    <string name="empty_playlistName">Название плейлиста не должно быть пустым</string>
+    <string name="error">Ошибка</string>
+    <string name="dismiss">Отклонить</string>
+    <string name="confirm">Принять</string>
+    <string name="all">Все</string>
+    <string name="created">Созданные</string>
+    <string name="suggested_tracks">Предложенные треки</string>
 </resources>

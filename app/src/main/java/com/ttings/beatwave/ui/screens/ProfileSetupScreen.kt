@@ -144,9 +144,17 @@ fun ProfileSetupScreen(
                 bottomPadding = 40
             )
             if (showError) {
-                ErrorBox(errorMessage = errorMessage, bottomPadding = 40) {
-                    showError = false
-                }
+                ErrorBox(
+                    errorMessage = errorMessage,
+                    bottomPadding = 40,
+                    onDismiss = {
+                        showError = false
+                        navController.popBackStack()
+                    },
+                    onConfirmation = {
+                        showError = false
+                    }
+                )
             }
         }
     }

@@ -3,16 +3,12 @@ package com.ttings.beatwave.repositories
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import androidx.core.net.toUri
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.getValue
 import com.google.firebase.storage.FirebaseStorage
 import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
-import com.ttings.beatwave.ui.screens.TrackPagingSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -158,7 +154,7 @@ class TrackRepository @Inject constructor(
         val trackIds = dataSnapshot.children.mapNotNull { snapshot ->
             val trackId = snapshot.getValue(String::class.java)
             trackId?.let { getTrackById(it) }
-        }.filterNotNull()
+        }
         emit(trackIds)
     }
 
@@ -168,7 +164,7 @@ class TrackRepository @Inject constructor(
         val trackIds = dataSnapshot.children.mapNotNull { snapshot ->
             val trackId = snapshot.getValue(String::class.java)
             trackId?.let { getTrackById(it) }
-        }.filterNotNull()
+        }
         emit(trackIds)
     }
 
@@ -178,7 +174,7 @@ class TrackRepository @Inject constructor(
         val trackIds = dataSnapshot.children.mapNotNull { snapshot ->
             val trackId = snapshot.getValue(String::class.java)
             trackId?.let { getTrackById(it) }
-        }.filterNotNull()
+        }
         emit(trackIds)
     }
 
@@ -188,7 +184,7 @@ class TrackRepository @Inject constructor(
         val itemIds = dataSnapshot.children.mapNotNull { snapshot ->
             val itemId = snapshot.getValue(String::class.java)
             itemId?.let { getPlaylistById(it, type) }
-        }.filterNotNull()
+        }
         emit(itemIds)
     }
 
@@ -319,24 +315,5 @@ class TrackRepository @Inject constructor(
             trackLikedUserIds.remove(currentUser.userId)
             trackLikesRef.setValue(trackLikedUserIds).await()
         }
-    }
-
-    fun getTracks(): Flow<PagingData<Track>> {
-        return Pager(
-            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-            pagingSourceFactory = { TrackPagingSource(database) }
-        ).flow
-    }
-
-    suspend fun isLiked(currentUser: User, trackId: String): Boolean {
-        if (currentUser != null) {
-            val trackLikesRef = database.getReference("likes").child(trackId)
-            val snapshot = trackLikesRef.get().await()
-            val userIds = snapshot.getValue<MutableList<String>>() ?: mutableListOf()
-            if (currentUser.userId in userIds) {
-                return true
-            }
-        }
-        return false
     }
 }

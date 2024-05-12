@@ -5,11 +5,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.compositionLocalOf
+
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -38,7 +37,7 @@ fun AppNavigation() {
         bottomBar = {
             Column {
                 if (currentDestination?.route !in listOf("SignInScreen", "SignUpScreen", "ProfileSetupScreen")) {
-                    if (currentDestination?.route !in listOf("UploadScreen")) {
+                    if (currentDestination?.route !in listOf("UploadScreen", "FeedScreen")) {
 //                        Timber.tag("AppNavigation").d("$currentTrack")
                         currentTrack?.let {
                             MiniPlayer(
@@ -130,6 +129,17 @@ fun AppNavigation() {
                 } else {
                     navController.popBackStack()
                     Timber.tag("AppNavigation").e("Error getting userId")
+                }
+            }
+            composable("PlaylistsScreen") {
+                PlaylistsScreen(navController)
+            }
+            composable("SelectedPlaylist/{playlistId}") { backStackEntry ->
+                val playlistId = backStackEntry.arguments?.getString("playlistId")
+                if (playlistId != null) {
+                    SelectedPlaylist(navController, playlistId, playerViewModel)
+                } else {
+                    // Обработка ошибки, если playlistId не предоставлен
                 }
             }
         }

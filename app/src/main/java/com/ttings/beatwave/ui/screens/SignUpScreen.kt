@@ -133,9 +133,11 @@ fun SignUpScreen(
                 textAlign = TextAlign.Center
             )
             if (showError) {
-                ErrorBox(errorMessage = errorMessage) {
-                    showError = false
-                }
+                ErrorBox(
+                    errorMessage = errorMessage,
+                    onDismiss = { showError = false },
+                    onConfirmation = { showError = false }
+                )
             }
         }
 

@@ -269,7 +269,13 @@ fun UploadScreen(
                 }
             }
             if (showError) {
-                ErrorBox(errorMessage = errorMessage) {
+                ErrorBox(
+                    errorMessage = errorMessage,
+                    onDismiss = {
+                        showError = false
+                        navController.popBackStack()
+                    },
+                ) {
                     showError = false
                 }
             }

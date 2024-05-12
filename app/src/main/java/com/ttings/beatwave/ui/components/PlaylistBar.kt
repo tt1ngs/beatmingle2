@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -17,7 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.ttings.beatwave.R
-import com.ttings.beatwave.ui.theme.LightGray
 import com.ttings.beatwave.ui.theme.Typography
 
 @Composable
@@ -31,7 +31,7 @@ fun PlaylistBar(
             .padding(horizontal = 10.dp)
             .size(118.dp, 160.dp)
             .clip(shape = RoundedCornerShape(19.dp))
-            .background(LightGray)
+            .background(MaterialTheme.colorScheme.secondary)
     ) {
         Image(
             painter = rememberImagePainter(

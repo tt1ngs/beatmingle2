@@ -4,7 +4,6 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.repositories.TrackRepository
@@ -55,7 +54,18 @@ class UploadViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                trackRepository.uploadTrack(currentUser.value!!.userId, trackId, title, genre, artistIds, albumId, duration, imageUri, trackUri, isPrivate)
+                trackRepository.uploadTrack(
+                    currentUser.value!!.userId,
+                    trackId,
+                    title,
+                    genre,
+                    artistIds,
+                    albumId,
+                    duration,
+                    imageUri,
+                    trackUri,
+                    isPrivate
+                )
             } finally {
                 _isLoading.value = false
             }

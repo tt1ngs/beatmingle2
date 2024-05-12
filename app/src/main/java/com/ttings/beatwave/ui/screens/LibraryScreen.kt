@@ -14,7 +14,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ttings.beatwave.R
-import com.ttings.beatwave.data.User
 import com.ttings.beatwave.ui.components.TopAppBar
 import com.ttings.beatwave.ui.theme.Typography
 import com.ttings.beatwave.viewmodels.ProfileViewModel
@@ -83,7 +82,9 @@ fun LibraryScreen(
             }
         }
         TextButton(
-            onClick = { /*TODO*/ }
+            onClick = {
+                navController.navigate("PlaylistsScreen")
+            }
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
