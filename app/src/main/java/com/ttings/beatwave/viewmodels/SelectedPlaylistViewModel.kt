@@ -29,7 +29,6 @@ class SelectedPlaylistViewModel @Inject constructor(
         emit(getCurrentUser())
     }
 
-
     fun loadPlaylist(playlistId: String) {
         viewModelScope.launch {
             try {
