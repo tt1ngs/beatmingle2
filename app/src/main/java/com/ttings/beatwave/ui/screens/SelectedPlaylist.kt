@@ -38,28 +38,34 @@ fun SelectedPlaylist(
         viewModel.checkIfPlaylistLiked(playlistId)
     }
 
+    LaunchedEffect(playlistId) {
+        playerViewModel.loadPlaylistTracks(playlistId)
+    }
+
     val user by viewModel.user.observeAsState()
     val playlist by viewModel.playlist.observeAsState()
     val creator by viewModel.creator.observeAsState()
 
-    val playlistTracks by viewModel.tracks.observeAsState()
+    val tracks by playerViewModel.playlistTracks.collectAsState()
 
     val isPlaylistLiked by viewModel.isPlaylistLiked.observeAsState()
 
-    var authorNames by remember { mutableStateOf(mapOf<String, String?>()) }
-    LaunchedEffect(playlistTracks) {
-        playlistTracks?.let { trackList ->
-            val uniqueAuthorIds = trackList.flatMap { it.artistIds }.toSet()
-            val authorIdToName = mutableMapOf<String, String?>()
-
-            viewModel.viewModelScope.launch {
-                uniqueAuthorIds.forEach { authorId ->
-                    val author = viewModel.getAuthorById(authorId)
-                    authorIdToName[authorId] = author?.username ?: "Unknown Author"
+    var authorNames by remember { mutableStateOf(mapOf<String, String>()) }
+    LaunchedEffect(tracks) {
+        try {
+            val names = tracks.flatMap { it.artistIds }.associateWith { id ->
+                val user = playerViewModel.getAuthorById(id)
+                if (user != null && user.username!!.isNotBlank()) {
+                    user.username
+                } else {
+                    "Unknown Author"
                 }
-                authorNames = authorIdToName
             }
+            authorNames = names
+        } catch (e: Exception) {
+            Timber.tag("LibUploadScreen").e(e)
         }
+
     }
 
     Column(
@@ -92,32 +98,41 @@ fun SelectedPlaylist(
                     PlaylistPanel(
                         playlist = playlist!!,
                         currentUser = user!!,
-                        isLiked = isPlaylistLiked!!,
+                        isLiked = isPlaylistLiked?: false,
                         trackCount = it.tracks.size,
                         playlistDuration = "",
                         profileImage = creator?.avatar ?: "",
                         username = creator?.username ?: "Loading...",
                         onLikeClick = { viewModel.likePlaylist(playlistId) },
                         onShuffleClick = { /*TODO*/ },
-                        onPlayClick = { /*TODO*/ }
+                        onPlayClick = {
+                            playerViewModel.playTrack(tracks[0], tracks)
+                        }
                     )
                 }
             }
 
-            playlistTracks?.let { trackList ->
-                if (trackList.isEmpty()) {
+            tracks.let { tracks ->
+                if (tracks.isEmpty()) {
                     item { Text("No tracks available") }
                 } else {
-                    items(trackList.size) { track ->
-                        val track = trackList[track]
+                    items(tracks.size) { index ->
+                        val track = tracks[index]
                         val authorName = authorNames[track.artistIds[0]] ?: ""
                         TrackBar(
                             authorName = authorName,
                             duration = viewModel.secondsToMinutesSeconds(track.duration),
                             track = track,
-                            onTrackClick = { /* TODO: Navigate to track screen */ },
+                            onTrackClick = {
+                                playerViewModel.playTrack(track, tracks.subList(index + 1, tracks.size))
+                            },
                             onMoreClick = { /* TODO: On moreClick */ }
                         )
+                        if (index >= tracks.size - 1) {
+                            LaunchedEffect(tracks.size) {
+                                playerViewModel.loadUserUploads(user!!.userId, tracks.size + 20)
+                            }
+                        }
                     }
                 }
             }

@@ -131,7 +131,6 @@ class TrackRepository @Inject constructor(
     }
 
     private suspend fun getTrackById(trackId: String): Track? {
-        Timber.d("Attempting to fetch track with ID: $trackId")
         val trackRef = database.getReference("track").child(trackId)
         val snapshot = trackRef.get().await()
         return snapshot.getValue(Track::class.java).also {
@@ -149,7 +148,7 @@ class TrackRepository @Inject constructor(
     }
 
     fun getTracksByPlaylist(playlistId: String): Flow<List<Track>> = flow {
-        val path = "playlists/$playlistId"
+        val path = "playlists/$playlistId/tracks"
         val dataSnapshot = database.getReference(path).get().await()
         val trackIds = dataSnapshot.children.mapNotNull { snapshot ->
             val trackId = snapshot.getValue(String::class.java)
