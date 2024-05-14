@@ -21,23 +21,25 @@ import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.SearchField
 import com.ttings.beatwave.ui.components.TopAppBar
 import com.ttings.beatwave.ui.components.TrackBar
+import com.ttings.beatwave.viewmodels.LibUploadViewModel
 import com.ttings.beatwave.viewmodels.PlayerViewModel
 import timber.log.Timber
 
 @Composable
 fun LibUploadScreen(
     navController: NavController,
-    playerViewModel: PlayerViewModel
+    playerViewModel: PlayerViewModel,
+    viewModel: LibUploadViewModel = hiltViewModel()
 ) {
 
-    val tracks by playerViewModel.uploadedTracks.collectAsState()
+    val tracks by viewModel.uploadedTracks.collectAsState()
     val isLoading by playerViewModel.isLoading.collectAsState()
-    val user by playerViewModel.currentUser.collectAsState()
+    val user by viewModel.currentUser.collectAsState()
 
     LaunchedEffect(user) {
         user?.userId?.let {
             if (tracks.isEmpty()) { // Только инициализируем загрузку, если треки еще не загружены
-                playerViewModel.loadUserUploads(it)
+                viewModel.loadUserUploads(it)
             }
         }
     }
@@ -46,7 +48,7 @@ fun LibUploadScreen(
     LaunchedEffect(tracks) {
         try {
             val names = tracks.flatMap { it.artistIds }.associateWith { id ->
-                val user = playerViewModel.getAuthorById(id)
+                val user = viewModel.getAuthorById(id)
                 if (user != null && user.username!!.isNotBlank()) {
                     user.username
                 } else {
@@ -105,7 +107,7 @@ fun LibUploadScreen(
                     val authorName = authorNames[track.artistIds[0]] ?: "Unknown Author"
                     TrackBar(
                         authorName = authorName,
-                        duration = playerViewModel.secondsToMinutesSeconds(track.duration),
+                        duration = viewModel.secondsToMinutesSeconds(track.duration),
                         track = track,
                         onTrackClick = {
                             try {
@@ -119,7 +121,7 @@ fun LibUploadScreen(
                     )
                     if (index >= tracks.size - 1) {
                         LaunchedEffect(tracks.size) {
-                            playerViewModel.loadUserUploads(user!!.userId, tracks.size + 20)
+                            viewModel.loadUserUploads(user!!.userId, tracks.size + 20) //TODO
                         }
                     }
                 }

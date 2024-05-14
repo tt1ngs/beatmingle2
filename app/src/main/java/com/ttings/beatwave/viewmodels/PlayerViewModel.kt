@@ -21,15 +21,6 @@ class PlayerViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _uploadedTracks = MutableStateFlow<List<Track>>(emptyList())
-    val uploadedTracks: StateFlow<List<Track>> = _uploadedTracks.asStateFlow()
-
-    private val _likedTracks = MutableStateFlow<List<Track>>(emptyList())
-    val likedTracks: StateFlow<List<Track>> = _likedTracks.asStateFlow()
-
-    private val _playlistTracks = MutableStateFlow<List<Track>>(emptyList())
-    val playlistTracks: StateFlow<List<Track>> = _playlistTracks.asStateFlow()
-
     private val _tracks = MutableStateFlow<List<Track>>(emptyList())
     val tracks: StateFlow<List<Track>> = _tracks.asStateFlow()
 
@@ -75,14 +66,15 @@ class PlayerViewModel @Inject constructor(
         Timber.d("Attempting to go to the next track.")
         try {
             _currentTrack.value?.let { currentTrack ->
-                val currentIndex = _tracks.value.indexOf(currentTrack)
-                if (currentIndex != -1 && currentIndex < _tracks.value.size - 1) {
-                    val nextTrack = _tracks.value[currentIndex + 1]
-                    playTrack(nextTrack, _tracks.value.drop(currentIndex + 1))
+                if (_tracks.value.isNotEmpty()) {
+                    val currentIndex = _tracks.value.indexOf(currentTrack)
+                    val nextIndex = (currentIndex + 1) % _tracks.value.size
+                    val nextTrack = _tracks.value[nextIndex]
+                    playTrack(nextTrack, _tracks.value) // передаем весь список треков
+                    checkIfCurrentTrackIsLiked()
+                    Timber.tag("PlayerViewModel").d("_currentTrack${_currentTrack.value}/n nextTrack${nextTrack}/n nextIndex${nextIndex}/n currentIndex${currentIndex}")
                 }
-                checkIfCurrentTrackIsLiked()
             }
-
         } catch (e: Exception) {
             Timber.e(e, "Failed to load liked tracks")
         }
@@ -91,13 +83,14 @@ class PlayerViewModel @Inject constructor(
     fun previousTrack() {
         Timber.d("Attempting to go to the previous track.")
         _currentTrack.value?.let { currentTrack ->
-            val currentIndex = _tracks.value.indexOf(currentTrack)
-            if (currentIndex > 0) {
-                val previousTrack = _tracks.value[currentIndex - 1]
-                playTrack(previousTrack, _tracks.value.drop(currentIndex))
+            if (_tracks.value.isNotEmpty()) {
+                val currentIndex = _tracks.value.indexOf(currentTrack)
+                val previousIndex = (currentIndex - 1 + _tracks.value.size) % _tracks.value.size
+                val previousTrack = _tracks.value[previousIndex]
+                playTrack(previousTrack, _tracks.value) // передаем весь список треков
+                checkIfCurrentTrackIsLiked()
             }
         }
-        checkIfCurrentTrackIsLiked()
     }
 
 
@@ -105,51 +98,6 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             userRepository.getCurrentUser()?.let {
                 _currentUser.value = it
-            }
-        }
-    }
-
-    fun loadLikedTracks(userId: String, limit: Int = 20) {
-        viewModelScope.launch {
-            try {
-                val loadedTracks = mutableListOf<Track>()
-                trackRepository.getTracksByLikedTracks(userId, limit).collect { newTracks ->
-                    loadedTracks.addAll(newTracks)
-                    _likedTracks.value = loadedTracks.toList()
-                    _tracks.value = _likedTracks.value
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load liked tracks")
-            }
-        }
-    }
-
-    fun loadUserUploads(userId: String, limit: Int = 20) {
-        viewModelScope.launch {
-            try {
-                val loadedTracks = mutableListOf<Track>()
-                trackRepository.getTracksByUserUploads(userId, limit).collect { newTracks ->
-                    loadedTracks.addAll(newTracks)
-                    _uploadedTracks.value = loadedTracks.toList()
-                    _tracks.value = _uploadedTracks.value
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load user uploads")
-            }
-        }
-    }
-
-    fun loadPlaylistTracks(playlistId: String) {
-        viewModelScope.launch {
-            try {
-                val loadedTracks = mutableListOf<Track>()
-                trackRepository.getTracksByPlaylist(playlistId).collect { newTracks ->
-                    loadedTracks.addAll(newTracks)
-                    _playlistTracks.value = loadedTracks.toList()
-                    _tracks.value = _playlistTracks.value
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load playlist tracks")
             }
         }
     }
@@ -167,6 +115,7 @@ class PlayerViewModel @Inject constructor(
     fun playTrack(track: Track, queue: List<Track>) {
         Timber.d("Setting current track: ${track.title}")
         _currentTrack.value = track
+        _tracks.value = queue
         try {
             viewModelScope.launch {
                 trackRepository.setupMediaPlayer(track, queue)

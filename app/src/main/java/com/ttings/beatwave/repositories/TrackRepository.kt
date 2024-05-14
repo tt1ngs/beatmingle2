@@ -171,8 +171,14 @@ class TrackRepository @Inject constructor(
         val uploadsPath = "users/$userId/uploads"
         val dataSnapshot = database.getReference(uploadsPath).orderByKey().limitToFirst(limit).get().await()
         val trackIds = dataSnapshot.children.mapNotNull { snapshot ->
-            val trackId = snapshot.getValue(String::class.java)
-            trackId?.let { getTrackById(it) }
+            val trackId = snapshot.getValue<Any>()?.toString() // Convert each individual item to a String
+            trackId?.let {
+                if (it.contains(Regex("[.#$\\[\\]]"))) {
+                    null // Skip this track ID if it contains invalid characters
+                } else {
+                    getTrackById(it)
+                }
+            }
         }
         emit(trackIds)
     }

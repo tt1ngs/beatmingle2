@@ -34,12 +34,12 @@ class FeedViewModel @Inject constructor(
     private val _isTrackLiked = MutableStateFlow(false)
     val isTrackLiked: StateFlow<Boolean> = _isTrackLiked.asStateFlow()
 
-    private fun updateLikeState(trackId: String, isLiked: Boolean) {
-        _isTrackLiked.value = isLiked
+    suspend fun updateLikeState(trackId: String) {
+        _isTrackLiked.value = isLiked(trackId)
     }
 
-    private fun updateFollowState(userId: String, isFollowed: Boolean) {
-        _isUserFollowed.value = isFollowed
+    suspend fun updateFollowState(userId: String) {
+        _isUserFollowed.value = isFollowed(userId)
     }
 
     // Проверка наличия текущего трека перед воспроизведением
@@ -98,7 +98,7 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 feedRepository.addTrackToLibrary(trackId)
-                updateLikeState(trackId, isLiked(trackId))
+                updateLikeState(trackId)
             } catch (e: Exception) {
                 Timber.tag("FeedViewModel").e(e, "Error liking track")
             }
@@ -109,7 +109,7 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 feedRepository.deleteTrackFromLibrary(trackId)
-                updateLikeState(trackId, isLiked(trackId))
+                updateLikeState(trackId)
             } catch (e: Exception) {
                 Timber.tag("FeedViewModel").e(e, "Error unliking track")
             }
@@ -120,7 +120,7 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 feedRepository.followUser(userId)
-                updateFollowState(userId, isFollowed(userId))
+                updateFollowState(userId)
             } catch (e: Exception) {
                 Timber.tag("FeedViewModel").e(e, "Error following user")
             }
@@ -131,7 +131,7 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 feedRepository.unfollowUser(userId)
-                updateFollowState(userId, isFollowed(userId))
+                updateFollowState(userId)
             } catch (e: Exception) {
                 Timber.tag("FeedViewModel").e(e, "Error unfollowing user")
             }
@@ -139,10 +139,12 @@ class FeedViewModel @Inject constructor(
     }
 
     private suspend fun isFollowed(userId: String): Boolean {
+        _isUserFollowed.value = feedRepository.isFollowing(userId)
         return feedRepository.isFollowing(userId)
     }
 
     private suspend fun isLiked(trackId: String): Boolean {
+        _isTrackLiked.value = feedRepository.isLiked(trackId)
         return feedRepository.isLiked(trackId)
     }
 }

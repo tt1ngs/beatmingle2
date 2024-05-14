@@ -1,7 +1,5 @@
 package com.ttings.beatwave.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttings.beatwave.data.Track
@@ -17,13 +15,12 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class LikedViewModel @Inject constructor(
+class LibUploadViewModel @Inject constructor(
     private val trackRepository: TrackRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
-
-    private val _likedTracks = MutableStateFlow<List<Track>>(emptyList())
-    val likedTracks: StateFlow<List<Track>> = _likedTracks.asStateFlow()
+    private val _uploadedTracks = MutableStateFlow<List<Track>>(emptyList())
+    val uploadedTracks: StateFlow<List<Track>> = _uploadedTracks.asStateFlow()
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -40,22 +37,22 @@ class LikedViewModel @Inject constructor(
         }
     }
 
-    suspend fun getAuthorById(id: String): User? {
-        return userRepository.getAuthorById(id)
-    }
-
-    fun loadLikedTracks(userId: String, limit: Int = 20) {
+    fun loadUserUploads(userId: String, limit: Int = 20) {
         viewModelScope.launch {
             try {
                 val loadedTracks = mutableListOf<Track>()
-                trackRepository.getTracksByLikedTracks(userId, limit).collect { newTracks ->
+                trackRepository.getTracksByUserUploads(userId, limit).collect { newTracks ->
                     loadedTracks.addAll(newTracks)
-                    _likedTracks.value = loadedTracks.toList()
+                    _uploadedTracks.value = loadedTracks.toList()
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to load liked tracks")
+                Timber.e(e, "Failed to load user uploads")
             }
         }
+    }
+
+    suspend fun getAuthorById(id: String): User? {
+        return userRepository.getAuthorById(id)
     }
 
     fun secondsToMinutesSeconds(seconds: Int): String {
@@ -63,4 +60,5 @@ class LikedViewModel @Inject constructor(
         val remainingSeconds = seconds % 60
         return String.format("%02d:%02d", minutes, remainingSeconds)
     }
+
 }

@@ -33,8 +33,13 @@ fun FeedScreen(
                 }
             }
 
-            val isFollowed by viewModel.isUserFollowed.collectAsState()
+            LaunchedEffect(track.trackId) {
+                viewModel.updateLikeState(track.trackId)
+                viewModel.updateFollowState(track.artistIds.first())
+            }
+
             val isLiked by viewModel.isTrackLiked.collectAsState()
+            val isFollowed by viewModel.isUserFollowed.collectAsState()
             val isPlaying by viewModel.isPlaying.collectAsState()
 
             // Остановка проигрывания трека при смене карточки

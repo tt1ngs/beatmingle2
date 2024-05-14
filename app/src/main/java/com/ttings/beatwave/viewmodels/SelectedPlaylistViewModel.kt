@@ -8,8 +8,12 @@ import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.repositories.FirebasePlaylistRepository
+import com.ttings.beatwave.repositories.TrackRepository
 import com.ttings.beatwave.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -17,33 +21,28 @@ import javax.inject.Inject
 @HiltViewModel
 class SelectedPlaylistViewModel @Inject constructor(
     private val userRepository: UserRepository,
+    private val trackRepository: TrackRepository,
     private val playlistRepository: FirebasePlaylistRepository
 ) : ViewModel() {
 
+    private val _playlistTracks = MutableStateFlow<List<Track>>(emptyList())
+    val playlistTracks: StateFlow<List<Track>> = _playlistTracks.asStateFlow()
+
     val playlist = MutableLiveData<Playlist?>()
-    val tracks = MutableLiveData<List<Track>>()
     val creator = MutableLiveData<User?>()
     val isPlaylistLiked = MutableLiveData<Boolean>()
 
-    val user = liveData {
-        emit(getCurrentUser())
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+
+    init {
+        fetchCurrentUser()
     }
 
-    fun loadPlaylist(playlistId: String) {
+    private fun fetchCurrentUser() {
         viewModelScope.launch {
-            try {
-                val playlistData = playlistRepository.getPlaylist(playlistId)
-                playlist.value = playlistData
-                Timber.tag("OPV").d("Playlist loaded: $playlistData")
-                Timber.tag("OpenPlaylistViewModel").d("Loading tracks for playlist: $playlistId")
-                tracks.value = playlistRepository.getPlaylistTracks(playlistId)
-                Timber.tag("OpenPlaylistViewModel").d("Tracks loaded: ${tracks.value}")
-
-                creator.value = getAuthorById(playlistData!!.userId)
-
-
-            } catch (e: Exception) {
-                Timber.tag("OpenPlaylistViewModel").e(e, "Error loading playlist")
+            userRepository.getCurrentUser()?.let {
+                _currentUser.value = it
             }
         }
     }
@@ -51,6 +50,35 @@ class SelectedPlaylistViewModel @Inject constructor(
     suspend fun getAuthorById(id: String): User? {
         return userRepository.getAuthorById(id)
     }
+
+    fun loadPlaylist(playlistId: String) {
+        viewModelScope.launch {
+            try {
+                val playlistData = playlistRepository.getPlaylist(playlistId)
+                playlist.value = playlistData
+                creator.value = getAuthorById(playlistData!!.userId)
+
+            } catch (e: Exception) {
+                Timber.tag("OpenPlaylistViewModel").e(e, "Error loading playlist")
+            }
+        }
+    }
+
+
+    fun loadPlaylistTracks(playlistId: String) {
+        viewModelScope.launch {
+            try {
+                val loadedTracks = mutableListOf<Track>()
+                trackRepository.getTracksByPlaylist(playlistId).collect { newTracks ->
+                    loadedTracks.addAll(newTracks)
+                    _playlistTracks.value = loadedTracks.toList()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load playlist tracks")
+            }
+        }
+    }
+
     suspend fun getCurrentUser(): User? {
         return userRepository.getCurrentUser()
     }

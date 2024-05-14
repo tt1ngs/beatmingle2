@@ -33,29 +33,30 @@ fun SelectedPlaylist(
     viewModel: SelectedPlaylistViewModel = hiltViewModel()
 ) {
 
+    val user by viewModel.currentUser.collectAsState()
+    val playlistTracks by viewModel.playlistTracks.collectAsState()
+    val playlist by viewModel.playlist.observeAsState()
+    val creator by viewModel.creator.observeAsState()
+    val isPlaylistLiked by viewModel.isPlaylistLiked.observeAsState()
+
     LaunchedEffect(key1 = true) {
         viewModel.loadPlaylist(playlistId)
         viewModel.checkIfPlaylistLiked(playlistId)
     }
 
-    LaunchedEffect(playlistId) {
-        playerViewModel.loadPlaylistTracks(playlistId)
+    LaunchedEffect(user) {
+        user?.userId?.let {
+            if (playlistTracks.isEmpty()) {
+                viewModel.loadPlaylistTracks(playlistId)
+            }
+        }
     }
 
-
-    val user by viewModel.user.observeAsState()
-    val playlist by viewModel.playlist.observeAsState()
-    val creator by viewModel.creator.observeAsState()
-
-    val tracks by playerViewModel.playlistTracks.collectAsState()
-
-    val isPlaylistLiked by viewModel.isPlaylistLiked.observeAsState()
-
     var authorNames by remember { mutableStateOf(mapOf<String, String>()) }
-    LaunchedEffect(tracks) {
+    LaunchedEffect(playlistTracks) {
         try {
-            val names = tracks.flatMap { it.artistIds }.associateWith { id ->
-                val user = playerViewModel.getAuthorById(id)
+            val names = playlistTracks.flatMap { it.artistIds }.associateWith { id ->
+                val user = viewModel.getAuthorById(id)
                 if (user != null && user.username!!.isNotBlank()) {
                     user.username
                 } else {
@@ -107,13 +108,13 @@ fun SelectedPlaylist(
                         onLikeClick = { viewModel.likePlaylist(playlistId) },
                         onShuffleClick = { /*TODO*/ },
                         onPlayClick = {
-                            playerViewModel.playTrack(tracks[0], tracks)
+                            playerViewModel.playTrack(playlistTracks[0], playlistTracks)
                         }
                     )
                 }
             }
 
-            tracks.let { tracks ->
+            playlistTracks.let { tracks ->
                 if (tracks.isEmpty()) {
                     item { Text("No tracks available") }
                 } else {
@@ -131,7 +132,7 @@ fun SelectedPlaylist(
                         )
                         if (index >= tracks.size - 1) {
                             LaunchedEffect(tracks.size) {
-                                playerViewModel.loadUserUploads(user!!.userId, tracks.size + 20)
+                                // TODO
                             }
                         }
                     }

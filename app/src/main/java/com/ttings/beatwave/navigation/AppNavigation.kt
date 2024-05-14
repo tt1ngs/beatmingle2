@@ -17,12 +17,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ttings.beatwave.ui.components.MiniPlayer
 import com.ttings.beatwave.ui.screens.*
+import com.ttings.beatwave.viewmodels.LikedViewModel
 import com.ttings.beatwave.viewmodels.PlayerViewModel
 import timber.log.Timber
 
 @Composable
 fun AppNavigation() {
     val playerViewModel: PlayerViewModel = hiltViewModel()
+    val likedViewModel: LikedViewModel = hiltViewModel()
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -114,7 +116,7 @@ fun AppNavigation() {
                 LibraryScreen(navController)
             }
             composable("LikedScreen") {
-                LikedScreen(navController, playerViewModel)
+                LikedScreen(navController, playerViewModel, likedViewModel)
             }
             composable("LibUploadScreen") {
                 LibUploadScreen(navController, playerViewModel)

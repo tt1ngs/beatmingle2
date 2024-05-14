@@ -36,16 +36,16 @@ import timber.log.Timber
 fun LikedScreen(
     navController: NavController,
     playerViewModel: PlayerViewModel,
-    viewModel: LikedViewModel = hiltViewModel()
+    viewModel: LikedViewModel
 ) {
 
-    val likedTracks by playerViewModel.likedTracks.collectAsState()
-    val user by playerViewModel.currentUser.collectAsState()
+    val likedTracks by viewModel.likedTracks.collectAsState()
+    val user by viewModel.currentUser.collectAsState()
 
     LaunchedEffect(user) {
         user?.userId?.let {
             if (likedTracks.isEmpty()) {
-                playerViewModel.loadLikedTracks(it)
+                viewModel.loadLikedTracks(it)
             }
         }
     }
@@ -130,6 +130,11 @@ fun LikedScreen(
                         },
                         onMoreClick = { /*TODO*/ }
                     )
+                    if (index >= likedTracks.size - 1) {
+                        LaunchedEffect(likedTracks.size) {
+                            viewModel.loadLikedTracks(user!!.userId, likedTracks.size + 20)
+                        }
+                    }
                 }
             }
         }
