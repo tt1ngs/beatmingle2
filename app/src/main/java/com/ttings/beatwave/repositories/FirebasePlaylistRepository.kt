@@ -109,6 +109,21 @@ class FirebasePlaylistRepository @Inject constructor(
         }
     }
 
+    suspend fun getUserPlaylists(userId: String): List<Playlist> {
+        return try {
+            val snapshot = firebaseDatabase.getReference("users").child(userId).child("uploads").child("playlists").get().await()
+            val playlistIds = snapshot.children.mapNotNull { it.getValue(String::class.java) }
+            val playlists = playlistIds.mapNotNull { playlistId ->
+                val playlistSnapshot = firebaseDatabase.getReference("playlists").child(playlistId).get().await()
+                playlistSnapshot.getValue(Playlist::class.java)
+            }
+            Timber.tag("FPR: getUserPlaylists").d("Playlists: $playlists")
+            playlists
+        } catch (e: Exception) {
+            Timber.tag("FPR: getUserPlaylists").e(e, "Error getting user playlists")
+            emptyList()
+        }
+    }
 
     suspend fun updatePlaylist(playlist: Playlist) {
         firebaseDatabase.getReference("playlists").child(playlist.playlistId).updateChildren(mapOf(

@@ -5,32 +5,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.ttings.beatwave.ui.components.PlaylistPanel
 import com.ttings.beatwave.ui.components.SuggestedSection
-import com.ttings.beatwave.ui.components.TopAppBar
+import com.ttings.beatwave.ui.components.CustomTopAppBar
 import com.ttings.beatwave.ui.components.TrackBar
 import com.ttings.beatwave.viewmodels.PlayerViewModel
 import com.ttings.beatwave.viewmodels.SelectedPlaylistViewModel
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectedPlaylist(
     navController: NavController,
     playlistId: String,
     playerViewModel: PlayerViewModel,
-    viewModel: SelectedPlaylistViewModel = hiltViewModel()
+    viewModel: SelectedPlaylistViewModel
 ) {
 
     val user by viewModel.currentUser.collectAsState()
@@ -74,7 +69,7 @@ fun SelectedPlaylist(
         modifier = Modifier.fillMaxSize()
     ) {
         Timber.tag("SelectedPlaylist").d(creator.toString())
-        TopAppBar(
+        CustomTopAppBar(
             title = playlist?.title ?: "",
             navigationIcon = {
                 IconButton(

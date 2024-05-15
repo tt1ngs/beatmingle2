@@ -114,7 +114,7 @@ fun PlaylistsScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TopAppBar(
+        CustomTopAppBar(
             title = stringResource(R.string.playlist),
             navigationIcon = {
                 IconButton(
@@ -194,7 +194,7 @@ fun PlaylistsScreen(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                TopAppBar(
+                CustomTopAppBar(
                     title = stringResource(R.string.create_playlist),
                     actions = {
                         IconButton(

@@ -5,33 +5,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Shuffle
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.SearchField
-import com.ttings.beatwave.ui.components.TopAppBar
+import com.ttings.beatwave.ui.components.CustomTopAppBar
 import com.ttings.beatwave.ui.components.TrackBar
 import com.ttings.beatwave.ui.theme.Typography
 import com.ttings.beatwave.viewmodels.LikedViewModel
 import com.ttings.beatwave.viewmodels.PlayerViewModel
 import timber.log.Timber
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LikedScreen(
     navController: NavController,
@@ -66,7 +59,7 @@ fun LikedScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TopAppBar(
+        CustomTopAppBar(
             title = stringResource(R.string.liked_tracks),
             navigationIcon = {
                 IconButton(

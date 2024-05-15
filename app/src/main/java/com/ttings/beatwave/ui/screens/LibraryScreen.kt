@@ -14,10 +14,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ttings.beatwave.R
-import com.ttings.beatwave.ui.components.TopAppBar
+import com.ttings.beatwave.ui.components.CustomTopAppBar
 import com.ttings.beatwave.ui.theme.Typography
 import com.ttings.beatwave.viewmodels.ProfileViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
     navController: NavController,
@@ -28,7 +29,7 @@ fun LibraryScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TopAppBar(
+        CustomTopAppBar(
             title = stringResource(R.string.library),
             actions = {
                 IconButton(

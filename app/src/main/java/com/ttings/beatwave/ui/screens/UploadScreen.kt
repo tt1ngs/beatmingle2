@@ -30,7 +30,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.ErrorBox
-import com.ttings.beatwave.ui.components.TopAppBar
+import com.ttings.beatwave.ui.components.CustomTopAppBar
 import com.ttings.beatwave.ui.components.TrackDataField
 import com.ttings.beatwave.ui.theme.Typography
 import com.ttings.beatwave.viewmodels.UploadViewModel
@@ -95,7 +95,7 @@ fun UploadScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TopAppBar(
+        CustomTopAppBar(
             title = stringResource(id = R.string.upload),
             actions = {
                 IconButton(

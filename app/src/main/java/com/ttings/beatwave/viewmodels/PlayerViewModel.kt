@@ -1,9 +1,12 @@
 package com.ttings.beatwave.viewmodels
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
+import com.ttings.beatwave.repositories.FirebasePlaylistRepository
 import com.ttings.beatwave.repositories.TrackRepository
 import com.ttings.beatwave.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val trackRepository: TrackRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val playlistRepository: FirebasePlaylistRepository
 ) : ViewModel() {
 
     private val _tracks = MutableStateFlow<List<Track>>(emptyList())
@@ -62,6 +66,26 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    val playlists = mutableStateOf(listOf<Playlist>())
+
+    fun fetchUserPlaylists(userId: String) {
+        viewModelScope.launch {
+            playlists.value = getUserPlaylists(userId)
+        }
+    }
+
+    private fun fetchCurrentUser() {
+        viewModelScope.launch {
+            userRepository.getCurrentUser()?.let {
+                _currentUser.value = it
+            }
+        }
+    }
+
+    suspend fun getUserPlaylists(userId: String): List<Playlist> {
+        return playlistRepository.getUserPlaylists(userId)
+    }
+
     fun nextTrack() {
         Timber.d("Attempting to go to the next track.")
         try {
@@ -89,15 +113,6 @@ class PlayerViewModel @Inject constructor(
                 val previousTrack = _tracks.value[previousIndex]
                 playTrack(previousTrack, _tracks.value) // передаем весь список треков
                 checkIfCurrentTrackIsLiked()
-            }
-        }
-    }
-
-
-    private fun fetchCurrentUser() {
-        viewModelScope.launch {
-            userRepository.getCurrentUser()?.let {
-                _currentUser.value = it
             }
         }
     }
@@ -162,4 +177,10 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    // Добавьте функцию для добавления трека в плейлист
+    fun addTrackToPlaylist(trackId: String, playlistId: String) {
+        viewModelScope.launch {
+            playlistRepository.addTrackToPlaylist(trackId, playlistId)
+        }
+    }
 }
