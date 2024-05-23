@@ -25,6 +25,7 @@ fun DataField(
     onValueChange: (String) -> Unit,
     label: String,
     topPadding: Int,
+    width: Int = 300,
     imeAction: ImeAction = ImeAction.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onImeAction: () -> Unit = {},
@@ -36,7 +37,7 @@ fun DataField(
         label = { Text(label) },
         textStyle = Typography.bodyMedium,
         modifier = Modifier
-            .width(300.dp)
+            .width(width.dp)
             .padding(top = topPadding.dp, bottom = bottomPadding.dp)
             .clip(RoundedCornerShape(10.dp))
             .border(1.dp, Color.Black, RoundedCornerShape(10.dp)),

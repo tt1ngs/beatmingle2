@@ -61,4 +61,7 @@
     <string name="all">All</string>
     <string name="created">Created</string>
     <string name="suggested_tracks">Suggested Tracks</string>
+    <string name="comments">Comments</string>
+    <string name="select_playlist">Select a playlist</string>
+    <string name="ur_comment">Your comment</string>
 </resources>

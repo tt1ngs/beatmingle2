@@ -61,4 +61,7 @@
     <string name="all">Все</string>
     <string name="created">Созданные</string>
     <string name="suggested_tracks">Предложенные треки</string>
+    <string name="comments">Комментарии</string>
+    <string name="select_playlist">Выберите плейлист</string>
+    <string name="ur_comment">Ваш комментарий</string>
 </resources>

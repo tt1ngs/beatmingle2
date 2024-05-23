@@ -2,14 +2,14 @@ package com.ttings.beatwave.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,6 +22,7 @@ import coil.compose.rememberImagePainter
 import com.ttings.beatwave.R
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
+import com.ttings.beatwave.ui.theme.Typography
 
 @Composable
 fun TrackCard(
@@ -38,7 +39,7 @@ fun TrackCard(
     author: User
 
 ) {
-    
+
     Card(
         modifier = Modifier
             .fillMaxSize()
@@ -69,16 +70,20 @@ fun TrackCard(
                         if (isLiked) Icons.Rounded.Favorite
                         else Icons.Rounded.FavoriteBorder,
                         contentDescription = "Like",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(36.dp)
                     )
                 }
-                IconButton(onClick = { onCommentClick() }) {
+                IconButton(
+                    onClick = {
+                        onCommentClick()
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.Rounded.ModeComment,
                         contentDescription = "Comment",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(36.dp)
                     )
@@ -89,7 +94,7 @@ fun TrackCard(
                     Icon(
                         imageVector = Icons.Rounded.AddChart,
                         contentDescription = "Add to playlist",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(36.dp)
                     )
@@ -99,7 +104,7 @@ fun TrackCard(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -114,7 +119,7 @@ fun TrackCard(
                         Text(
                             text = track.title,
                             color = Color.White,
-                            style = MaterialTheme.typography.headlineMedium,
+                            style = Typography.titleLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )

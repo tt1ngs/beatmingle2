@@ -59,8 +59,8 @@ fun TrackBar(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop)
-
+                contentScale = ContentScale.Crop
+            )
         }
         Column(
             modifier = Modifier

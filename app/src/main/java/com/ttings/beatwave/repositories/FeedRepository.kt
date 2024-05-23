@@ -5,11 +5,13 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.getValue
+import com.google.firebase.database.*
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
+import com.ttings.beatwave.data.Comment
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
@@ -18,6 +20,57 @@ class FeedRepository @Inject constructor(
     private val database: FirebaseDatabase,
     private val auth: FirebaseAuth
 ) {
+
+    suspend fun getUserById(userId: String): User? {
+        return try {
+            val snapshot = database.getReference("users").child(userId).get().await()
+            snapshot.getValue(User::class.java)
+        } catch (e: Exception) {
+            Timber.tag("FeedRepository").e(e, "Error getting user by id")
+            null
+        }
+    }
+
+    suspend fun addComment(trackId: String, comment: String) {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            val commentMap = mapOf("userId" to currentUser.uid, "comment" to comment)
+            database.getReference("comments").child(trackId).push().setValue(commentMap).await()
+            database.getReference("track").child(trackId).child("comments").push().setValue(commentMap).await()
+        }
+    }
+
+    fun getComments(trackId: String): Flow<List<Comment>> {
+        return callbackFlow {
+            try {
+                val listener = database.getReference("tracks").child(trackId).child("comments")
+                    .addValueEventListener(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val comments = snapshot.children.mapNotNull {
+                                val commentMap = it.getValue<Map<String, String>>()
+                                commentMap?.let { map ->
+                                    Comment(
+                                        userId = map["userId"] ?: "",
+                                        comment = map["comment"] ?: ""
+                                    )
+                                }
+                            }
+                            trySend(comments).isSuccess
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            close(error.toException())
+                        }
+                    })
+
+                awaitClose { database.getReference("tracks").child(trackId).child("comments").removeEventListener(listener) }
+            } catch (e: Exception) {
+                Timber.tag("FeedRepository").e(e, "Error getting comments")
+                close(e)
+            }
+        }
+    }
+
     fun getTracks(): Flow<PagingData<Track>> {
         return Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false),

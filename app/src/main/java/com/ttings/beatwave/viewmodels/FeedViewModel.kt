@@ -5,10 +5,12 @@ import android.media.MediaPlayer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import com.ttings.beatwave.data.Comment
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.repositories.FeedRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +35,35 @@ class FeedViewModel @Inject constructor(
 
     private val _isTrackLiked = MutableStateFlow(false)
     val isTrackLiked: StateFlow<Boolean> = _isTrackLiked.asStateFlow()
+
+    private val _comments = MutableStateFlow<List<Comment>>(emptyList())
+    val comments: StateFlow<List<Comment>> = _comments.asStateFlow()
+
+    fun addComment(trackId: String, comment: String) {
+        viewModelScope.launch {
+            try {
+                feedRepository.addComment(trackId, comment)
+                getComments(trackId).collect {
+                    _comments.value = it
+                }
+            } catch (e: Exception) {
+                Timber.tag("FeedViewModel").e(e, "Error adding comment")
+            }
+        }
+    }
+
+    suspend fun getUserById(userId: String): User? {
+        return try {
+            return feedRepository.getUserById(userId)
+        } catch (e: Exception) {
+            Timber.tag("FeedViewModel").e(e, "Error getting user by id")
+            null
+        }
+    }
+
+    fun getComments(trackId: String): Flow<List<Comment>> {
+        return feedRepository.getComments(trackId)
+    }
 
     suspend fun updateLikeState(trackId: String) {
         _isTrackLiked.value = isLiked(trackId)
