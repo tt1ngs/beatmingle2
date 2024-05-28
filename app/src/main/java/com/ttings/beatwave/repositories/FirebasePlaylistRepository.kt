@@ -20,6 +20,23 @@ class FirebasePlaylistRepository @Inject constructor(
     private val firebaseDatabase: FirebaseDatabase,
     private val userRepository: UserRepository
 ) {
+
+    suspend fun getUserTracks(userId: String): List<Track> {
+        return try {
+            val snapshot = firebaseDatabase.getReference("users").child(userId).child("uploads").child("tracks").get().await()
+            val trackIds = snapshot.children.mapNotNull { it.getValue(String::class.java) }
+            val tracks = trackIds.mapNotNull { trackId ->
+                val trackSnapshot = firebaseDatabase.getReference("track").child(trackId).get().await()
+                trackSnapshot.getValue(Track::class.java)
+            }
+            Timber.tag("FPR: getUserTracks").d("Tracks: $tracks")
+            tracks
+        } catch (e: Exception) {
+            Timber.tag("FPR: getUserTracks").e(e, "Error getting user tracks")
+            emptyList()
+        }
+    }
+
     suspend fun createPlaylist(playlist: Playlist, imageUri: Uri) {
         try {
             if (isActive) { // Check if the coroutine is still active
@@ -198,18 +215,34 @@ class FirebasePlaylistRepository @Inject constructor(
         return randomIndices
     }
 
-    suspend fun addTrackToPlaylist(trackId: String, playlistId: String) {
-        val playlistRef = firebaseDatabase.getReference("playlists").child(playlistId).child("tracks")
-        val snapshot = playlistRef.get().await()
+    suspend fun addTrackToPlaylist(trackId: String, playlistId: String, onlyUserTracks: Boolean = false) {
+        if (onlyUserTracks) {
+            val playlistRef = firebaseDatabase.getReference("albums").child(playlistId).child("tracks")
+            val snapshot = playlistRef.get().await()
 
-        // Получение данных как HashMap и преобразование их в List
-        val trackMap = snapshot.getValue(object : GenericTypeIndicator<HashMap<String, String>>() {})
-        val trackIds = trackMap?.values?.toList() ?: emptyList()
+            // Получение данных как HashMap и преобразование их в List
+            val trackMap = snapshot.getValue(object : GenericTypeIndicator<HashMap<String, String>>() {})
+            val trackIds = trackMap?.values?.toList() ?: emptyList()
 
-        if (trackId !in trackIds) {
-            playlistRef.push().setValue(trackId)
-        } else {
-            Timber.tag("FirebasePlaylistRepository").d("Track already in playlist")
+            if (trackId !in trackIds) {
+                playlistRef.push().setValue(trackId)
+            } else {
+                Timber.tag("FirebasePlaylistRepository").d("Track already in playlist")
+            }
+        }
+        else {
+            val playlistRef = firebaseDatabase.getReference("playlists").child(playlistId).child("tracks")
+            val snapshot = playlistRef.get().await()
+
+            // Получение данных как HashMap и преобразование их в List
+            val trackMap = snapshot.getValue(object : GenericTypeIndicator<HashMap<String, String>>() {})
+            val trackIds = trackMap?.values?.toList() ?: emptyList()
+
+            if (trackId !in trackIds) {
+                playlistRef.push().setValue(trackId)
+            } else {
+                Timber.tag("FirebasePlaylistRepository").d("Track already in playlist")
+            }
         }
     }
 

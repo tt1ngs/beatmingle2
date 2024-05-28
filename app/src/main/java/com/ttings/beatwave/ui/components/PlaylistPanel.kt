@@ -33,7 +33,8 @@ fun PlaylistPanel(
     username: String,
     onLikeClick: () -> Unit,
     onShuffleClick: () -> Unit,
-    onPlayClick: () -> Unit
+    onPlayClick: () -> Unit,
+    onUserClick: () -> Unit
 
 ) {
     Column(
@@ -81,7 +82,9 @@ fun PlaylistPanel(
                         modifier = Modifier.clickable(onClick = { TODO() })
                     )
                 }
-                Row {
+                Row(
+                    modifier = Modifier.clickable { onUserClick() }
+                ) {
                     Image(
                         painter = rememberImagePainter(
                             data = profileImage,
@@ -103,7 +106,6 @@ fun PlaylistPanel(
                         style = Typography.bodySmall,
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
-                            .clickable(onClick = { TODO() })
                     )
                 }
             }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.repositories.FirebasePlaylistRepository
+import com.ttings.beatwave.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -12,13 +13,29 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SuggestionViewModel @Inject constructor(
-    private val playlistRepository: FirebasePlaylistRepository
+    private val playlistRepository: FirebasePlaylistRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     val suggestedTracks = MutableLiveData<List<Track>>()
+    val suggestedUserTracks = MutableLiveData<List<Track>>()
     private var currentPage = 0
 
     init {
         loadTracks()
+        loadUserTracks()
+    }
+
+    fun loadUserTracks() {
+        viewModelScope.launch {
+            try {
+                val user = userRepository.getCurrentUser()
+                val tracks = playlistRepository.getUserTracks(user?.userId ?: "")
+                suggestedUserTracks.postValue(tracks)
+                Timber.tag("SuggestionViewModel").d("User tracks loaded: $tracks")
+            } catch (e: Exception) {
+                Timber.tag("SuggestionViewModel").e(e, "Error loading user tracks")
+            }
+        }
     }
 
     private fun loadTracks() {
@@ -49,10 +66,14 @@ class SuggestionViewModel @Inject constructor(
         }
     }
 
-    fun addToPlaylist(trackId: String, playlistId: String) {
+    fun addToPlaylist(trackId: String, playlistId: String, onlyUserTracks: Boolean = false) {
         viewModelScope.launch {
             try {
-                playlistRepository.addTrackToPlaylist(trackId, playlistId)
+                if (onlyUserTracks){
+                    playlistRepository.addTrackToPlaylist(trackId, playlistId, onlyUserTracks)
+                } else {
+                    playlistRepository.addTrackToPlaylist(trackId, playlistId)
+                }
             } catch (e: Exception) {
                 Timber.tag("SuggestionViewModel").e(e, "Error adding track to playlist")
             }

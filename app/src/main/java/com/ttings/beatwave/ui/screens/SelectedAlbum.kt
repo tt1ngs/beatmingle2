@@ -1,56 +1,57 @@
 package com.ttings.beatwave.ui.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.ttings.beatwave.ui.components.PlaylistPanel
-import com.ttings.beatwave.ui.components.SuggestedSection
-import com.ttings.beatwave.ui.components.CustomTopAppBar
-import com.ttings.beatwave.ui.components.TrackBar
+import com.google.type.DateTime
+import com.ttings.beatwave.R
+import com.ttings.beatwave.ui.components.*
 import com.ttings.beatwave.viewmodels.PlayerViewModel
-import com.ttings.beatwave.viewmodels.SelectedPlaylistViewModel
+import com.ttings.beatwave.viewmodels.SelectedAlbumViewModel
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectedPlaylist(
+fun SelectedAlbum(
     navController: NavController,
     playlistId: String,
     playerViewModel: PlayerViewModel,
-    viewModel: SelectedPlaylistViewModel
+    viewModel: SelectedAlbumViewModel = hiltViewModel()
 ) {
 
     val user by viewModel.currentUser.collectAsState()
-    val playlistTracks by viewModel.playlistTracks.collectAsState()
-    val playlist by viewModel.playlist.observeAsState()
+    val albumTracks by viewModel.albumTracks.collectAsState()
+    val album by viewModel.album.observeAsState()
     val creator by viewModel.creator.observeAsState()
-    val isPlaylistLiked by viewModel.isPlaylistLiked.observeAsState()
+    val isAlbumLiked by viewModel.isAlbumLiked.observeAsState()
 
     LaunchedEffect(key1 = true) {
-        viewModel.loadPlaylist(playlistId)
-        viewModel.checkIfPlaylistLiked(playlistId)
+        viewModel.loadAlbum(playlistId)
+        viewModel.checkIfAlbumLiked(playlistId)
     }
 
     LaunchedEffect(user) {
         user?.userId?.let {
-            if (playlistTracks.isEmpty()) {
-                viewModel.loadPlaylistTracks(playlistId)
+            if (albumTracks.isEmpty()) {
+                viewModel.loadAlbumTracks(playlistId)
             }
         }
     }
 
     var authorNames by remember { mutableStateOf(mapOf<String, String>()) }
-    LaunchedEffect(playlistTracks) {
+    LaunchedEffect(albumTracks) {
         try {
-            val names = playlistTracks.flatMap { it.artistIds }.associateWith { id ->
+            val names = albumTracks.flatMap { it.artistIds }.associateWith { id ->
                 val user = viewModel.getAuthorById(id)
                 if (user != null && user.username!!.isNotBlank()) {
                     user.username
@@ -70,7 +71,7 @@ fun SelectedPlaylist(
     ) {
         Timber.tag("SelectedPlaylist").d(creator.toString())
         CustomTopAppBar(
-            title = playlist?.title ?: "",
+            title = album?.title ?: "",
             navigationIcon = {
                 IconButton(
                     onClick = {
@@ -91,19 +92,19 @@ fun SelectedPlaylist(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                playlist?.let {
+                album?.let {
                     PlaylistPanel(
-                        playlist = playlist!!,
+                        playlist = album!!,
                         currentUser = user!!,
-                        isLiked = isPlaylistLiked?: false,
+                        isLiked = isAlbumLiked?: false,
                         trackCount = it.tracks.size,
                         playlistDuration = "",
                         profileImage = creator?.avatar ?: "",
                         username = creator?.username ?: "Loading...",
-                        onLikeClick = { viewModel.likePlaylist(playlistId) },
+                        onLikeClick = { viewModel.likeAlbum(playlistId) },
                         onShuffleClick = { /*TODO*/ },
                         onPlayClick = {
-                            playerViewModel.playTrack(playlistTracks[0], playlistTracks)
+                            playerViewModel.playTrack(albumTracks[0], albumTracks)
                         },
                         onUserClick = {
                             if (user != null) {
@@ -117,7 +118,7 @@ fun SelectedPlaylist(
                 }
             }
 
-            playlistTracks.let { tracks ->
+            albumTracks.let { tracks ->
                 if (tracks.isEmpty()) {
                     item { Text("No tracks available") }
                 } else {
@@ -143,7 +144,7 @@ fun SelectedPlaylist(
             }
 
             if (user?.userId == creator?.userId) {
-                item { SuggestedSection(playlistId = playlistId) }
+                item { SuggestedSection(playlistId = playlistId, onlyUserTracks = true) }
             }
 
         }

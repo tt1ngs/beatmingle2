@@ -34,7 +34,7 @@ fun LibraryScreen(
             actions = {
                 IconButton(
                     onClick = {
-                        /*TODO*/
+                        navController.navigate("SettingsScreen")
                     }
                 ) {
                     Icon(
@@ -104,7 +104,9 @@ fun LibraryScreen(
             }
         }
         TextButton(
-            onClick = { /*TODO*/ }
+            onClick = {
+                navController.navigate("AlbumsScreen")
+            }
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,

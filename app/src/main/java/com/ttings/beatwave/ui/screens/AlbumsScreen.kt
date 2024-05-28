@@ -32,43 +32,47 @@ import com.ttings.beatwave.R
 import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.ui.components.*
 import com.ttings.beatwave.ui.theme.Typography
-import com.ttings.beatwave.viewmodels.PlaylistViewModel
+import com.ttings.beatwave.viewmodels.AlbumsViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlaylistsScreen(
+fun AlbumsScreen(
     navController: NavController,
-    viewModel: PlaylistViewModel = hiltViewModel()
+    viewModel: AlbumsViewModel = hiltViewModel()
 ) {
-    val emptyTitle = stringResource(id = R.string.empty_title)
-    val emptyImage = stringResource(id = R.string.empty_image)
-
-    val isLoading by viewModel.isLoading.collectAsState()
-    val playlists by viewModel.playlists.observeAsState(setOf<Pair<Playlist, String>>())
-    val likedPlaylists by viewModel.likedPlaylists.observeAsState(setOf<Pair<Playlist, String>>())
-    val uploadedPlaylists by viewModel.uploadedPlaylists.observeAsState(setOf<Pair<Playlist, String>>())
 
     val currentUser by viewModel.currentUser.collectAsState()
 
-    var selectedOption by remember { mutableStateOf(0) }
-    val options = listOf(stringResource(id = R.string.all), stringResource(id = R.string.liked_tracks), stringResource(
-        id = R.string.created))
+    val albums by viewModel.albums.observeAsState(setOf<Pair<Playlist, String>>())
+    val likedAlbums by viewModel.likedAlbums.observeAsState(setOf<Pair<Playlist, String>>())
+    val uploadedAlbums by viewModel.uploadedAlbums.observeAsState(setOf<Pair<Playlist, String>>())
 
     var showDialog by remember { mutableStateOf(false) }
+    var authorStatus by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = Unit) {
+        authorStatus = viewModel.getAuthorStatus()
+    }
+
+    var selectedOption by remember { mutableStateOf(0) }
+    val options = listOf(stringResource(id = R.string.all), stringResource(id = R.string.liked_albums), stringResource(
+        id = R.string.created))
 
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     var switchState by remember { mutableStateOf(true) }
 
-    var titleValue by remember { mutableStateOf("") }
+    val emptyTitle = stringResource(id = R.string.empty_title)
+    val emptyImage = stringResource(id = R.string.empty_image)
 
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-
+    val isLoading by viewModel.isLoading.collectAsState()
     var errorMessage by rememberSaveable { mutableStateOf("") }
     var showError by rememberSaveable { mutableStateOf(false) }
+    var titleValue by remember { mutableStateOf("") }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -84,9 +88,9 @@ fun PlaylistsScreen(
             onDismissRequest = { showDialog = false },
             title = {
                 Text(
-                    text = stringResource(R.string.select_playlists),
+                    text = stringResource(R.string.select_albums),
                     style = Typography.titleMedium
-            ) },
+                ) },
             text = {
                 Column {
                     options.forEachIndexed { index, option ->
@@ -108,18 +112,19 @@ fun PlaylistsScreen(
         )
     }
 
-    val currentPlaylists = when (selectedOption) {
-        0 -> playlists
-        1 -> likedPlaylists
-        2 -> uploadedPlaylists
-        else -> playlists
+    val currentAlbums = when (selectedOption) {
+        0 -> albums
+        1 -> likedAlbums
+        2 -> uploadedAlbums
+        else -> albums
     }
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+
         CustomTopAppBar(
-            title = stringResource(R.string.playlist),
+            title = stringResource(R.string.album),
             navigationIcon = {
                 IconButton(
                     onClick = {
@@ -147,36 +152,43 @@ fun PlaylistsScreen(
                 }
             }
         )
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .align(Alignment.CenterHorizontally),
             horizontalAlignment = Alignment.CenterHorizontally) {
-            item {
-                Spacer(modifier = Modifier.height(10.dp))
-                CreatePlaylist(
-                    infoText = stringResource(R.string.create_playlist),
-                    onClick = {
-                        showBottomSheet = true
-                    }
-                )
+
+            Timber.tag("AlbumsScreen").d("[124] authorStatus: $authorStatus")
+            if (authorStatus) {
+                item {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    CreatePlaylist(
+                        infoText = stringResource(R.string.create_album),
+                        onClick = {
+                            showBottomSheet = true
+                        }
+                    )
+                }
             }
-            val playlistList = currentPlaylists.toList()
-            items(playlistList.size) { index ->
-                val (playlist, authorName) = playlistList[index]
+
+            val albumsList = currentAlbums.toList()
+            items(albumsList.size) { index ->
+                val (playlist, authorName) = albumsList[index]
+                Timber.tag("AlbumScreen").d("Playlist: ${playlist.isPrivate}")
                 PlaylistBarSlim(
                     playlistName = playlist.title,
                     playlistImage = playlist.image,
                     authorName = authorName,
                     isPrivate = playlist.isPrivate,
-                    duration = "0:00",
+                    duration = "",
                     onPlaylistClick = {
                         Timber.tag("PlaylistScreen").d("Playlist clicked: $playlist")
                         try{
-                            navController.navigate("SelectedPlaylist/${playlist.playlistId}")
+                            navController.navigate("SelectedAlbum/${playlist.playlistId}")
 
                         } catch (e: Exception) {
-                            Timber.tag("PlaylistScreen").e(e)
+                            Timber.tag("AlbumScreen").e(e)
                         }
                     },
                     onMoreClick = {
@@ -186,6 +198,7 @@ fun PlaylistsScreen(
             }
         }
     }
+
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -213,7 +226,7 @@ fun PlaylistsScreen(
                                     }
                                     else -> {
                                         try {
-                                            viewModel.savePlaylist(
+                                            viewModel.saveAlbum(
                                                 title = titleValue,
                                                 imageUri = imageUri!!,
                                                 userId = currentUser!!.userId,
@@ -344,4 +357,5 @@ fun PlaylistsScreen(
         }
 
     }
+
 }

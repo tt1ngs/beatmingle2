@@ -1,5 +1,7 @@
 package com.ttings.beatwave.viewmodels
 
+import android.net.Uri
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttings.beatwave.data.Playlist
@@ -98,5 +100,27 @@ class ProfileViewModel @Inject constructor(
             currentUser = userRepository.getCurrentUser()
         }
         return currentUser
+    }
+
+    // LiveData для отслеживания ошибок
+    val error: MutableLiveData<String> = MutableLiveData()
+    // Функция для загрузки изображения на Firebase Storage
+    suspend fun uploadImage(uri: Uri) {
+        val downloadUrl = userRepository.uploadImage(uri)
+        userRepository.updateUserImage(downloadUrl)
+    }
+    // Функция для загрузки изображения на Firebase Storage
+    suspend fun uploadBackground(uri: Uri) {
+        val downloadUrl = userRepository.uploadBackground(uri)
+        userRepository.updateUserBackground(downloadUrl)
+    }
+
+    // Функция для обновления имени пользователя
+    suspend fun updateUserName(name: String) {
+        if (name.isBlank()) {
+            error.value = "Name cannot be blank"
+            return
+        }
+        userRepository.updateUserName(name)
     }
 }

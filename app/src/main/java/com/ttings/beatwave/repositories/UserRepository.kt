@@ -27,6 +27,7 @@ class UserRepository @Inject constructor(
         val downloadUrl = ref.downloadUrl.await()
         return downloadUrl.toString()
     }
+
     suspend fun uploadBackground(uri: Uri): String {
         val ref = storage.reference.child("profileImage/background/${UUID.randomUUID()}")
         ref.putFile(uri).await()
@@ -40,6 +41,7 @@ class UserRepository @Inject constructor(
             database.getReference("users").child(user.uid).updateChildren(mapOf("avatar" to url))
         }
     }
+
     fun updateUserBackground(url: String) {
         val user = auth.currentUser
         if (user != null) {
@@ -178,6 +180,33 @@ class UserRepository @Inject constructor(
             })
         } else {
             continuation.resume(null)
+        }
+    }
+
+    suspend fun getAuthorStatus(): Boolean = suspendCoroutine { continuation ->
+        val user = auth.currentUser
+        if (user != null) {
+            val reference = database.getReference("users").child(user.uid)
+            reference.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    val isAuthor = dataSnapshot.child("isAuthor").getValue(Boolean::class.java) ?: false
+                    continuation.resume(isAuthor)
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Timber.tag("Firebase error").e(databaseError.message)
+                    continuation.resume(false)
+                }
+            })
+        } else {
+            continuation.resume(false)
+        }
+    }
+
+    fun becomeAuthor() {
+        val user = auth.currentUser
+        if (user != null) {
+            database.getReference("users").child(user.uid).updateChildren(mapOf("isAuthor" to true))
         }
     }
 }

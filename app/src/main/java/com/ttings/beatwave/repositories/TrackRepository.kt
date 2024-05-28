@@ -147,6 +147,16 @@ class TrackRepository @Inject constructor(
         }
     }
 
+    fun getTracksByAlbum(playlistId: String): Flow<List<Track>> = flow {
+        val path = "albums/$playlistId/tracks"
+        val dataSnapshot = database.getReference(path).get().await()
+        val trackIds = dataSnapshot.children.mapNotNull { snapshot ->
+            val trackId = snapshot.getValue(String::class.java)
+            trackId?.let { getTrackById(it) }
+        }
+        emit(trackIds)
+    }
+
     fun getTracksByPlaylist(playlistId: String): Flow<List<Track>> = flow {
         val path = "playlists/$playlistId/tracks"
         val dataSnapshot = database.getReference(path).get().await()

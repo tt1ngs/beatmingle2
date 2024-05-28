@@ -23,9 +23,14 @@ import timber.log.Timber
 @Composable
 fun SuggestedSection(
     playlistId: String,
+    onlyUserTracks: Boolean = false,
     viewModel: SuggestionViewModel = hiltViewModel()
 ) {
-    val tracks by viewModel.suggestedTracks.observeAsState(initial = emptyList())
+    val tracks by if (onlyUserTracks) {
+        viewModel.suggestedTracks.observeAsState(initial = emptyList())
+    } else {
+        viewModel.suggestedTracks.observeAsState(initial = emptyList())
+    }
 
     if (tracks.isEmpty()) {
         Text("Loading...")
@@ -68,7 +73,7 @@ fun SuggestedSection(
                 )
 
                 if (dismissState.isDismissed(DismissDirection.StartToEnd)) {
-                    viewModel.addToPlaylist(track.trackId, playlistId)
+                    viewModel.addToPlaylist(track.trackId, playlistId, onlyUserTracks)
                     viewModel.viewModelScope.launch {
                         viewModel.replaceTrack(track.trackId) // Replace the added track
                     }

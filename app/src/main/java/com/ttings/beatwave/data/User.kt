@@ -6,6 +6,7 @@ data class User(
     val avatar: String? = null,
     val background: String? = null,
     val profileSetupComplete: Boolean = false,
+    val isAuthor: Boolean = false,
     val likedPlaylists: List<String?> = emptyList(),
     val likedTracks: List<String?> = emptyList()
 )

@@ -166,6 +166,23 @@ fun AppNavigation() {
                     // Обработка ошибки, если playlistId не предоставлен
                 }
             }
+            composable("SearchScreen") {
+                SearchScreen(navController)
+            }
+            composable("SettingsScreen") {
+                SettingsScreen(navController)
+            }
+            composable("AlbumsScreen") {
+                AlbumsScreen(navController)
+            }
+            composable("SelectedAlbum/{albumId}") { backStackEntry ->
+                val albumId = backStackEntry.arguments?.getString("albumId")
+                if (albumId != null) {
+                    SelectedAlbum(navController, albumId, playerViewModel)
+                } else {
+                    // Обработка ошибки, если albumId не предоставлен
+                }
+            }
         }
     }
 }

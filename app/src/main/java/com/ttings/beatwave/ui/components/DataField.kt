@@ -44,6 +44,7 @@ fun DataField(
         visualTransformation = visualTransformation,
         keyboardOptions = KeyboardOptions(imeAction = imeAction),
         keyboardActions = KeyboardActions(onDone = { onImeAction() }),
+        singleLine = true,
         maxLines = 1
     )
 }

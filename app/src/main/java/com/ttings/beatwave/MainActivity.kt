@@ -20,7 +20,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BeatwaveTheme {
-                AppNavigation()
+                Surface {
+                    AppNavigation()
+                }
             }
         }
     }

@@ -1,9 +1,11 @@
 package com.ttings.beatwave.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,6 +26,7 @@ import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.AuthButton
 import com.ttings.beatwave.ui.components.DataField
 import com.ttings.beatwave.ui.components.ErrorBox
+import com.ttings.beatwave.ui.theme.BeatwaveTheme
 import com.ttings.beatwave.ui.theme.Typography
 import com.ttings.beatwave.viewmodels.AuthViewModel
 

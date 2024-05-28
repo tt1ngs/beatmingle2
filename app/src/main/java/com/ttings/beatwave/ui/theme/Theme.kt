@@ -17,11 +17,11 @@ import androidx.core.view.WindowCompat
 private val DarkColorScheme = darkColorScheme(
     background = Black,
     onBackground = White,
-    surface = Black,  // Для навигационной панели отличный от background
+    surface = Black,
     onSurface = White,
     primary = White,
     onPrimary = Black,
-    secondary = DarkGray,  // Для выделения активных элементов
+    secondary = DarkGray,
     onSecondary = LightGray,
     secondaryContainer = DarkGray,
     onSecondaryContainer = White
@@ -34,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Black,
     primary = Black,
     onPrimary = White,
-    secondary = LightGray,  // Аналогично для светлой темы
+    secondary = LightGray,
     secondaryContainer = LightGray,
     onSecondaryContainer = Black,
     onSecondary = DarkGray,
@@ -48,10 +48,10 @@ fun BeatwaveTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+//        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+//            val context = LocalContext.current
+//            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+//        }
 
         darkTheme -> DarkColorScheme
         else -> LightColorScheme

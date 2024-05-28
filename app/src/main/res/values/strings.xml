@@ -64,4 +64,28 @@
     <string name="comments">Comments</string>
     <string name="select_playlist">Select a playlist</string>
     <string name="ur_comment">Your comment</string>
+    <string name="select_playlists">Select playlists</string>
+    <string name="settings">Settings</string>
+    <string name="logout">Logout</string>
+    <string name="become_an_author">Become an author</string>
+    <string name="terms">By becoming an author, you agree to the terms</string>
+    <string name="copyrighting">Music Streaming Policy Introduction We are delighted to welcome you to our music streaming
+        service. Our goal is to provide you with the best music experience by offering a wide variety of genres and
+        styles. It is important for all users to understand and comply with the rules of use outlined below. Terms of
+        Use Registration and Account Users must register on our service, providing accurate information. User accounts
+        are personal and should not be shared with third parties. Content Use The music available on our service is for
+        personal use only. Any commercial use, copying, distribution, or reproduction of the content without permission
+        is prohibited. Copyright All content is protected by copyright and other intellectual property laws. Users must
+        respect copyright and not infringe upon it. Payment and Subscription Access to premium content is based on a
+        subscription. All payments are processed through our secure payment gateway. Privacy We respect your privacy and
+        protect your personal data in accordance with our Privacy Policy. Policy Changes We reserve the right to change
+        this policy at any time. Users will be notified of any significant changes. Contact Us If you have any questions
+        or suggestions regarding our service, please contact our support team.
+    </string>
+    <string name="accept">Accept</string>
+    <string name="decline">decline</string>
+    <string name="liked_albums">Liked</string>
+    <string name="select_albums">Select albums</string>
+    <string name="create_album">Create Album</string>
+    <string name="release">Release</string>
 </resources>

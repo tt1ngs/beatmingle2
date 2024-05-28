@@ -27,6 +27,7 @@ import coil.compose.rememberImagePainter
 import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
+import com.ttings.beatwave.ui.theme.BeatwaveTheme
 import com.ttings.beatwave.ui.theme.Typography
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -320,5 +321,27 @@ fun MiniPlayer(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun MiniPlayerPreview() {
+    BeatwaveTheme {
+        MiniPlayer(
+            currentUser = User("1", "ms_denchik", "email", "password"),
+            track = Track("1", "Мини-плеер", "author", "image", "audio"),
+            playlists = emptyList(),
+            author = "ms_denchik",
+            isPlaying = false,
+            isLiked = false,
+            currentProgress = 0.5f,
+            onSelectedPlaylist = {},
+            onPlayPauseClicked = {},
+            onFavoriteClicked = {},
+            onNextTrack = {},
+            onPreviousTrack = {}
+        )
+
     }
 }

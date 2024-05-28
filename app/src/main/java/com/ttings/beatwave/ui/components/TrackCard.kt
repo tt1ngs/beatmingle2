@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.ttings.beatwave.R
@@ -171,4 +172,32 @@ fun TrackCard(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun PreviewTrackCard() {
+    TrackCard(
+        track = Track(
+            trackId = "1",
+            title = "Разработка",
+            image = "https://w7.pngwing.com/pngs/416/531/png-transparent-wrench-bahco-tools.png",
+            file = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+            artistIds = listOf("1"),
+        ),
+        isLiked = false,
+        isPlaying = false,
+        isFollowed = false,
+        onPlayPauseClick = {},
+        onLikeClick = {},
+        onCommentClick = {},
+        onAuthorClick = {},
+        onFollowClick = {},
+        onAddToPlaylist = {},
+        author = User(
+            userId = "1",
+            username = "Username",
+            avatar = "https://picsum.photos/200/300"
+        )
+    )
 }
