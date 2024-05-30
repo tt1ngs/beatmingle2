@@ -1,27 +1,36 @@
 package com.ttings.beatwave.ui.screens
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
-import com.ttings.beatwave.ui.components.UserContent
-import com.ttings.beatwave.ui.components.UserPanel
+import com.ttings.beatwave.R
+import com.ttings.beatwave.ui.components.*
+import com.ttings.beatwave.ui.theme.DarkGray
+import com.ttings.beatwave.ui.theme.Typography
 import com.ttings.beatwave.viewmodels.PlayerViewModel
 import com.ttings.beatwave.viewmodels.ProfileViewModel
 import kotlinx.coroutines.launch
@@ -31,6 +40,7 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     userId: String,
     navController: NavController,
+    playerViewModel: PlayerViewModel,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     LaunchedEffect(key1 = userId) {
@@ -38,8 +48,8 @@ fun ProfileScreen(
     }
 
     var isEditProfileVisible by remember { mutableStateOf(false) }
-    val profileScope = rememberCoroutineScope()
     val editProfileState = rememberModalBottomSheetState()
+    val profileScope = rememberCoroutineScope()
 
     var profileImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     var backgroundImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -50,8 +60,25 @@ fun ProfileScreen(
     val followersCount by viewModel.followersCount.collectAsState()
     val isFollowing by viewModel.isFollowing.collectAsState()
 
+    val avatarLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                profileImageUri = it
+            }
+        }
+    )
+    val backgroundLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                backgroundImageUri = it
+            }
+        }
+    )
+
     if (user != null) {
-        LazyColumn() {
+        LazyColumn {
             item {
                 UserPanel(
                     user = user!!,
@@ -63,7 +90,12 @@ fun ProfileScreen(
                     onBackClick = { navController.popBackStack() },
                     onFollowingClick = { /* TODO: add Follows Screen */ },
                     onFollowerClick = { /* TODO: add Followers Screen */ },
-                    onEditClick = { /* TODO */ },
+                    onEditClick = {
+                        isEditProfileVisible = true
+                        profileScope.launch {
+                            editProfileState.show()
+                        }
+                    },
                     onPlayClick = { /* TODO: add Play User Tracks */ }
                 )
             }
@@ -78,126 +110,162 @@ fun ProfileScreen(
                     onMorePlaylistsClick = { },
                     onMoreAlbumsClick = { },
                     onMoreLikesClick = { },
+                    viewModel = playerViewModel,
+                    navController = navController
                 )
             }
         }
-    }
 
-    if (isEditProfileVisible) {
-        ModalBottomSheet(
-            onDismissRequest = { isEditProfileVisible = false },
-            sheetState = editProfileState
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
+        if (isEditProfileVisible) {
+            ModalBottomSheet(
+                onDismissRequest = { isEditProfileVisible = false },
+                sheetState = editProfileState
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    modifier = Modifier.height(intrinsicSize = IntrinsicSize.Min)
                 ) {
-                    TextButton(onClick = {
-                        profileScope.launch {
-                            editProfileState.hide()
-                        }.invokeOnCompletion {
-                            if (!editProfileState.isVisible) {
-                                isEditProfileVisible = false
+                    CustomTopAppBar(
+                        title = stringResource(R.string.edit_profile),
+                        navigationIcon = {
+                            IconButton(
+                                onClick = {
+                                    isEditProfileVisible = false
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.ArrowBackIosNew,
+                                    contentDescription = "Library",
+                                    tint = MaterialTheme.colorScheme.onBackground
+                                )
                             }
                         }
-                    }
-                    ) {
-                        Text(text = "Назад")
-                    }
-                    Text(text = "Настройка профиля")
-                    TextButton(onClick = {
-                        viewModel.viewModelScope.launch {
-                            profileImageUri?.let { viewModel.uploadImage(it) }
-                            backgroundImageUri?.let { viewModel.uploadBackground(it) }
-                            viewModel.updateUserName(user?.username ?: "")
-                        }
-
-
-                        profileScope.launch {
-                            editProfileState.hide()
-                        }.invokeOnCompletion {
-                            if (!editProfileState.isVisible) {
-                                isEditProfileVisible = false
-                            }
-                        }
-                        // TODO save changes
-                    }
-                    ) {
-                        Text(text = "Сохранить")
-                    }
-                }
-
-                Text(text = "Изображение профиля")
-                Box(
-                    modifier = Modifier
-                        .width(300.dp)
-                        .height(300.dp)
-                        .align(Alignment.CenterHorizontally)
-
-                ) {
-                    Image(
-                        painter = rememberImagePainter(
-                            data = profileImageUri,
-                            builder = {
-                                crossfade(true)
-                                fallback(defaultImage)
-                            }
-                        ),
-                        contentDescription = "Profile Image",
-                        modifier = Modifier
-                            .size(300.dp)
-                            .clip(RoundedCornerShape(50))
-                            .clickable(onClick = {
-                                pickProfileImageLauncher.launch("image/*")
-                            }),
-                        contentScale = ContentScale.Crop
                     )
                 }
-
-                Spacer(modifier = Modifier.padding(16.dp))
-                CustomText(text = "Задний фон профиля")
-                Box(modifier = Modifier
-                    .height(84.dp)
-                    .padding(start = 16.dp, end = 16.dp)
-                    .fillMaxWidth()
-                    .border(2.dp, Color.LightGray)
-
+                LazyColumn(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(
-                        painter = rememberImagePainter(
-                            data = backgroundImageUri,
-                            builder = {
-                                crossfade(true)
-                                fallback(defaultImage)
-                            }
-                        ),
-                        contentDescription = "Background Image",
-                        modifier = Modifier
-                            .height(84.dp)
-                            .fillMaxWidth()
-                            .clickable(onClick = {
-                                pickBackgroundImageLauncher.launch("image/*")
-                            }),
-                        contentScale = ContentScale.FillWidth
-                    )
+                    item {
+                        Text(
+                            text = stringResource(id = R.string.profile_image),
+                            style = Typography.bodyMedium,
+                            maxLines = 1,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 10.dp)
+                                .size(300.dp)
+                                .background(color = DarkGray, shape = CircleShape)
+                                .clickable {
+                                    avatarLauncher.launch("image/*")
+                                }
+                                .align(Alignment.CenterHorizontally),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val painter = rememberImagePainter(
+                                data = profileImageUri ?: user?.avatar ?: R.drawable.beatminglelogo,
+                                builder = {
+                                    crossfade(true)
+                                    error(R.drawable.beatminglelogo)
+                                }
+                            )
+                            Image(
+                                painter = painter,
+                                contentDescription = "Profile Image",
+                                modifier = Modifier
+                                    .size(270.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+
+                    item {
+                        Text(
+                            text = stringResource(id = R.string.profile_background),
+                            style = Typography.bodyMedium,
+                            maxLines = 1,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 10.dp)
+                                .width(300.dp)
+                                .height(150.dp)
+                                .background(color = DarkGray, shape = RoundedCornerShape(16.dp))
+                                .clickable {
+                                    backgroundLauncher.launch("image/*")
+                                }
+                                .align(Alignment.CenterHorizontally),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val painter = rememberImagePainter(
+                                data = backgroundImageUri ?: user?.background ?: R.drawable.beatminglelogo,
+                                builder = {
+                                    crossfade(true)
+                                    error(R.drawable.beatminglelogo)
+                                }
+                            )
+                            Image(
+                                painter = painter,
+                                contentDescription = "Background Image",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(16.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+
+                    item {
+                        Text(
+                            text = stringResource(id = R.string.username),
+                            style = Typography.bodyMedium,
+                            maxLines = 1,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+
+                        var username by remember { mutableStateOf(user?.username ?: "") }
+                        DataField(
+                            value = username,
+                            onValueChange = { username = it },
+                            label = stringResource(R.string.username),
+                            topPadding = 10,
+                            bottomPadding = 10
+                        )
+                        AuthButton(
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    if (profileImageUri != null) {
+                                        viewModel.uploadImage(profileImageUri!!)
+                                    }
+                                    if (backgroundImageUri != null) {
+                                        viewModel.uploadBackground(backgroundImageUri!!)
+                                    }
+                                    if (username != user?.username) {
+                                        viewModel.updateUserName(username)
+                                    }
+                                }
+                            },
+                            text = stringResource(id = R.string.save),
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.padding(16.dp))
-                CustomText(text = "Имя пользователя")
-                CustomTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = "Username",
-                    topPadding = 0
-                )
-
-
-
-                // Add more content here
             }
         }
     }
-
 }

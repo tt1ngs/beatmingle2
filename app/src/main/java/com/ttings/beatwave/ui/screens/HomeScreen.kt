@@ -1,28 +1,48 @@
 package com.ttings.beatwave.ui.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ttings.beatwave.R
+import com.ttings.beatwave.ui.components.ArtistBar
 import com.ttings.beatwave.ui.components.CustomTopAppBar
+import com.ttings.beatwave.ui.components.PlaylistBar
+import com.ttings.beatwave.ui.components.TrackBar
 import com.ttings.beatwave.ui.theme.Typography
+import com.ttings.beatwave.viewmodels.HomeViewModel
+import com.ttings.beatwave.viewmodels.PlayerViewModel
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController
+    navController: NavController,
+    playerViewModel: PlayerViewModel,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
+    val tracks by viewModel.tracks.observeAsState(initial = emptyList())
+    val playlists by viewModel.playlists.observeAsState(initial = emptyList())
+    val authors by viewModel.authors.observeAsState(initial = emptyList())
+    val chunkedTracks = tracks.shuffled().chunked(3)
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -64,6 +84,27 @@ fun HomeScreen(
                 style = Typography.titleMedium
             )
         }
+
+        LazyRow {
+            items(chunkedTracks.take(3)) { trackChunk ->
+                LazyColumn(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp)
+                ) {
+                    items(trackChunk) { track ->
+                        TrackBar(
+                            track = track,
+                            authorName = "",
+                            duration = viewModel.secondsToMinutesSeconds(track.duration),
+                            onMoreClick = {},
+                            onTrackClick = { playerViewModel.playTrack(track, trackChunk) }
+                        )
+                    }
+                }
+            }
+        }
+
         Column {
             Text(
                 text = stringResource(id = R.string.home_mixes),
@@ -74,6 +115,26 @@ fun HomeScreen(
                 style = Typography.titleMedium
             )
         }
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            items(playlists.shuffled().take(3)) { playlist ->
+                PlaylistBar(
+                    playlistName = playlist.title,
+                    authorName = "",
+                    playlistImage = playlist.image,
+                    onPlaylistClick = {
+                        try {
+                            navController.navigate("SelectedPlaylist/${playlist.playlistId}")
+                        } catch (e: Exception) {
+                            Timber.e(e)
+                        }
+                    }
+                )
+            }
+        }
+
         Column {
             Text(
                 text = stringResource(id = R.string.home_attention),
@@ -84,5 +145,25 @@ fun HomeScreen(
                 style = Typography.titleMedium
             )
         }
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            items(authors.shuffled().take(5)) { author ->
+                ArtistBar(
+                    user = author,
+                    onAuthorClick = {
+                        if (author != null) {
+                            val userId = author?.userId
+                            navController.navigate("ProfileScreen/${userId}")
+                        } else {
+                            Timber.d("Author == null")
+                        }
+                    }
+                )
+            }
+        }
+
     }
 }

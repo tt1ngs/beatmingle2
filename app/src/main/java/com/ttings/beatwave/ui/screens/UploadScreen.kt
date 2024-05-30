@@ -303,8 +303,7 @@ fun UploadScreen(
                                         isGenreSheetVisible = false
                                     }
                                 }
-                            }
-                            ) {
+                            }) {
                                 Text(
                                     text = stringResource(R.string.cancel),
                                     style = Typography.bodyMedium,

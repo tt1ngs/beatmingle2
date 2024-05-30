@@ -277,4 +277,17 @@ class FirebasePlaylistRepository @Inject constructor(
             Timber.tag("FirebasePlaylistRepository").e(e, "Error removing playlist from library")
         }
     }
+
+    suspend fun getPublicPlaylists(): List<Playlist> {
+        val playlists = mutableListOf<Playlist>()
+        val dataSnapshot = firebaseDatabase.getReference("playlists").get().await()
+        Timber.tag("FirebasePlaylistRepository").e("Playlists: ${dataSnapshot.toString()}")
+        for (snapshot in dataSnapshot.children) {
+            val playlist = snapshot.getValue(Playlist::class.java)
+            if (playlist != null && !playlist.isPrivate) {
+                playlists.add(playlist)
+            }
+        }
+        return playlists
+    }
 }

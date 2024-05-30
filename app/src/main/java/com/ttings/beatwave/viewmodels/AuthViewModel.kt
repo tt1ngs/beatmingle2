@@ -7,6 +7,7 @@ import com.ttings.beatwave.data.AuthState
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.repositories.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -18,12 +19,18 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
     val uiState: MutableStateFlow<AuthState> = MutableStateFlow(AuthState.Empty)
 
+    fun isLoggedIn(): Flow<Boolean> {
+        return authRepository.getAuthState()
+    }
+
     fun signIn(email: String, password: String, navController: NavController) {
         viewModelScope.launch {
             try {
                 uiState.value = AuthState.Loading("Signing in...")
                 val user = authRepository.signInWithEmailAndPassword(email, password)
                 if (user != null) {
+                    // Сохраняем состояние авторизации
+                    authRepository.saveAuthState(true)
                     uiState.value = AuthState.Success(user)
                     // Получаем документ пользователя.
                     authRepository.getUserDocument(user.uid) { userDocument ->
@@ -49,6 +56,11 @@ class AuthViewModel @Inject constructor(
             try {
                 uiState.value = AuthState.Loading("Signing up...")
                 val result = authRepository.signUpWithEmailAndPassword(email, password)
+
+                if (result.user != null) {
+                    authRepository.saveAuthState(true)
+                }
+
                 uiState.value = AuthState.Success(authRepository.getCurrentUser()!!)
 
                 val newUser = User(

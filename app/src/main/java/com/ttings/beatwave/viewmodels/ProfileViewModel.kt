@@ -53,8 +53,8 @@ class ProfileViewModel @Inject constructor(
             _followingCount.value = userRepository.getFollowingCount()
             _isFollowing.value = userRepository.isFollowing(userId)
             trackRepository.getTracksByUserUploads(userId).collect { _userUploads.value = it }
-            trackRepository.getPlaylistsByUser(userId, "playlists").collect { _userPlaylists.value = it }
-            trackRepository.getPlaylistsByUser(userId, "albums").collect { _userAlbums.value = it }
+            trackRepository.getPlaylistsByUser(userId, "playlists", true).collect { _userPlaylists.value = it }
+            trackRepository.getPlaylistsByUser(userId, "albums", true).collect { _userAlbums.value = it }
             trackRepository.getTracksByLikedTracks(userId).collect { _userLikes.value = it }
         }
     }

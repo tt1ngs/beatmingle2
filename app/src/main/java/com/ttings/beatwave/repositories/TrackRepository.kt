@@ -193,12 +193,18 @@ class TrackRepository @Inject constructor(
         emit(trackIds)
     }
 
-    fun getPlaylistsByUser(userId: String, type: String): Flow<List<Playlist>> = flow {
+    fun getPlaylistsByUser(userId: String, type: String, onlyPublic: Boolean = false): Flow<List<Playlist>> = flow {
         val path = "users/$userId/uploads/$type"
         val dataSnapshot = database.getReference(path).get().await()
         val itemIds = dataSnapshot.children.mapNotNull { snapshot ->
             val itemId = snapshot.getValue(String::class.java)
             itemId?.let { getPlaylistById(it, type) }
+        }.filter { playlist ->
+            if (onlyPublic) {
+                !playlist.isPrivate
+            } else {
+                true
+            }
         }
         emit(itemIds)
     }
@@ -330,5 +336,17 @@ class TrackRepository @Inject constructor(
             trackLikedUserIds.remove(currentUser.userId)
             trackLikesRef.setValue(trackLikedUserIds).await()
         }
+    }
+
+    suspend fun getPublicTracks(): List<Track> {
+        val tracks = mutableListOf<Track>()
+        val dataSnapshot = database.getReference("track").get().await()
+        for (snapshot in dataSnapshot.children) {
+            val track = snapshot.getValue(Track::class.java)
+            if (track != null && !track.isPrivate) {
+                tracks.add(track)
+            }
+        }
+        return tracks
     }
 }

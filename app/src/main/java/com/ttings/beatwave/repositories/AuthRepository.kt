@@ -1,5 +1,6 @@
 package com.ttings.beatwave.repositories
 
+import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
@@ -7,13 +8,29 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.ttings.beatwave.data.User
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
-    private val database: FirebaseDatabase
+    private val database: FirebaseDatabase,
+    private val context: Context
 ) {
+
+    fun saveAuthState(isLoggedIn: Boolean) {
+        val sharedPreferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("isLoggedIn", isLoggedIn)
+        editor.apply()
+    }
+
+    fun getAuthState(): Flow<Boolean> = flow {
+        val sharedPreferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+        emit(sharedPreferences.getBoolean("isLoggedIn", false))
+    }
+
     suspend fun signInWithEmailAndPassword(email: String, password: String): FirebaseUser? {
         val result = auth.signInWithEmailAndPassword(email, password).await()
         return result.user

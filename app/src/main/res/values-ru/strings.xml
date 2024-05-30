@@ -91,4 +91,10 @@
     <string name="select_albums">Выберите альбомы</string>
     <string name="create_album">Создать альбом</string>
     <string name="release">Выпустить</string>
+    <string name="edit_profile">Редактировать профиль</string>
+    <string name="profile_background">Фон профиля</string>
+    <string name="edit">Редактировать</string>
+    <string name="delete_or_add">Удалить/Добавить</string>
+    <string name="add_to_playlist">Добавить в плейлист</string>
+    <string name="authors_profile">Профиль автора</string>
 </resources>

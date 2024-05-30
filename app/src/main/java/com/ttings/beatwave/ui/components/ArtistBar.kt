@@ -15,60 +15,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.ttings.beatwave.R
+import com.ttings.beatwave.data.User
 import com.ttings.beatwave.ui.theme.Typography
 
 @Composable
-fun PlaylistBar(
-    playlistName: String,
-    authorName: String,
-    playlistImage: String,
-    onPlaylistClick: () -> Unit
+fun ArtistBar(
+    user: User,
+    onAuthorClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .padding(horizontal = 10.dp)
-            .size(118.dp, 160.dp)
+            .size(100.dp, 130.dp)
             .clip(shape = RoundedCornerShape(19.dp))
             .background(MaterialTheme.colorScheme.secondary)
-            .clickable { onPlaylistClick() }
+            .clickable {
+                onAuthorClick()
+            }
     ) {
         Image(
             painter = rememberImagePainter(
-                data = playlistImage,
+                data = user.avatar,
                 builder = {
                     crossfade(true)
                     fallback(R.drawable.logo)
                 }
             ),
-            contentDescription = "Track Image",
+            contentDescription = "Profile Image",
             modifier = Modifier
                 .padding(top = 8.dp)
-                .size(102.dp)
+                .size(82.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .align(CenterHorizontally),
             contentScale = ContentScale.Crop)
         Text(
-            text = playlistName,
+            text = user.username ?: "",
             style = Typography.bodyMedium,
             maxLines = 1,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(top = 8.dp)
                 .align(CenterHorizontally)
-        )
-        Text(
-            text = authorName,
-            style = Typography.titleSmall,
-            maxLines = 1,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .align(CenterHorizontally)
-
         )
     }
 }

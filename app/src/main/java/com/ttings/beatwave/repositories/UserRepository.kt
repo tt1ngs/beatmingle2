@@ -209,4 +209,23 @@ class UserRepository @Inject constructor(
             database.getReference("users").child(user.uid).updateChildren(mapOf("isAuthor" to true))
         }
     }
+
+    suspend fun getAuthors(): List<User> {
+        try {
+            val authors = mutableListOf<User>()
+            val dataSnapshot = database.getReference("users").orderByChild("isAuthor").equalTo(true).get().await()
+            Timber.tag("UserRepository").d("DataSnapshot: $dataSnapshot")
+            for (snapshot in dataSnapshot.children) {
+                val user = snapshot.getValue(User::class.java)
+                if (user != null) {
+                    authors.add(user)
+                }
+            }
+            return authors
+        } catch (e: Exception) {
+            Timber.tag("UserRepository").e(e, "Error getting authors")
+            return emptyList()
+        }
+
+    }
 }

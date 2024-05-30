@@ -3,11 +3,8 @@ package com.ttings.beatwave.navigation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -18,14 +15,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ttings.beatwave.ui.components.MiniPlayer
 import com.ttings.beatwave.ui.screens.*
-import com.ttings.beatwave.viewmodels.LibUploadViewModel
-import com.ttings.beatwave.viewmodels.LikedViewModel
-import com.ttings.beatwave.viewmodels.PlayerViewModel
-import com.ttings.beatwave.viewmodels.SelectedPlaylistViewModel
+import com.ttings.beatwave.viewmodels.*
 import timber.log.Timber
 
 @Composable
 fun AppNavigation() {
+    val authViewModel: AuthViewModel = hiltViewModel()
     val playerViewModel: PlayerViewModel = hiltViewModel()
     val likedViewModel: LikedViewModel = hiltViewModel()
     val libUploadViewModel: LibUploadViewModel = hiltViewModel()
@@ -41,6 +36,7 @@ fun AppNavigation() {
     val currentTrack by playerViewModel.currentTrack.collectAsState(initial = null)
     val isLiked by playerViewModel.isCurrentTrackLiked.collectAsState()
 
+    val isLoggedIn by authViewModel.isLoggedIn().collectAsState(false)
 
     val playlists by playerViewModel.playlists
 
@@ -116,7 +112,7 @@ fun AppNavigation() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = "SignInScreen",
+            startDestination = if (isLoggedIn) "HomeScreen" else "SignInScreen",
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("SignInScreen") {
@@ -129,7 +125,7 @@ fun AppNavigation() {
                 ProfileSetupScreen(navController)
             }
             composable("HomeScreen") {
-                HomeScreen(navController)
+                HomeScreen(navController, playerViewModel)
             }
             composable("UploadScreen") {
                 UploadScreen(navController)
@@ -149,7 +145,7 @@ fun AppNavigation() {
             composable("ProfileScreen/{userId}") { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId")
                 if (userId != null) {
-                    ProfileScreen(userId, navController)
+                    ProfileScreen(userId, navController, playerViewModel)
                 } else {
                     navController.popBackStack()
                     Timber.tag("AppNavigation").e("Error getting userId")

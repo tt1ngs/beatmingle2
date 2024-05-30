@@ -11,11 +11,15 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
@@ -24,14 +28,17 @@ import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.ui.theme.LightGray
 import com.ttings.beatwave.ui.theme.Typography
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TrackBar(
     authorName: String,
     duration: String,
     track: Track,
     onTrackClick: (Track) -> Unit,
-    onMoreClick: () -> Unit
+    onMoreClick: (Offset) -> Unit
 ) {
+    var iconOffset by remember { mutableStateOf(Offset.Zero) }
+
     Row(
         modifier = Modifier
             .padding(vertical = 5.dp)
@@ -97,14 +104,23 @@ fun TrackBar(
             modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .padding(end = 11.dp)
-
+                .onGloballyPositioned { coordinates ->
+                    iconOffset = coordinates.localToRoot(Offset.Zero)
+                }
         ) {
             Icon(
                 imageVector = Icons.Rounded.MoreVert,
                 contentDescription = "More",
                 modifier = Modifier
                     .size(24.dp)
-                    .clickable(onClick = onMoreClick)
+                    .pointerInteropFilter { event ->
+                        if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                            onMoreClick(iconOffset + Offset(event.x, event.y))
+                            true
+                        } else {
+                            false
+                        }
+                    }
             )
         }
     }

@@ -10,11 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.ttings.beatwave.R
 import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.ui.theme.Typography
+import com.ttings.beatwave.viewmodels.PlayerViewModel
 
 @Composable
 fun UserContent(
@@ -23,10 +25,12 @@ fun UserContent(
     userPlaylistsList: List<Playlist>,
     userAlbumsList: List<Playlist>,
     userLikesList: List<Track>,
-    onMoreTracksClick: () -> Unit = {},
-    onMoreAlbumsClick: () -> Unit = {},
-    onMorePlaylistsClick: () -> Unit = {},
-    onMoreLikesClick: () -> Unit = {}
+    onMoreTracksClick: () -> Unit = {}, // TODO
+    onMoreAlbumsClick: () -> Unit = {}, // TODO
+    onMorePlaylistsClick: () -> Unit = {}, // TODO
+    onMoreLikesClick: () -> Unit = {}, // TODO
+    viewModel: PlayerViewModel,
+    navController: NavController
 ) {
     Column {
 
@@ -67,8 +71,8 @@ fun UserContent(
                         authorName = user.username!!,
                         duration = secondsToMinutesSeconds(track.duration),
                         track = track,
-                        onTrackClick = { /* TODO */ },
-                        onMoreClick = { /* TODO */ }
+                        onTrackClick = { viewModel.playTrack(track, userUploadsList) },
+                        onMoreClick = { onMoreTracksClick() }
                     )
                 }
             }
@@ -108,7 +112,8 @@ fun UserContent(
                     PlaylistBar(
                         playlistName = playlist.title,
                         authorName = user.username!!,
-                        playlistImage = playlist.image
+                        playlistImage = playlist.image,
+                        onPlaylistClick = { navController.navigate("SelectedAlbum/${playlist.playlistId}") }
                     )
                 }
             }
@@ -147,7 +152,8 @@ fun UserContent(
                     PlaylistBar(
                         playlistName = playlist.title,
                         authorName = user.username!!,
-                        playlistImage = playlist.image
+                        playlistImage = playlist.image,
+                        onPlaylistClick = { navController.navigate("SelectedPlaylist/${playlist.playlistId}") }
                     )
                 }
             }
@@ -189,103 +195,17 @@ fun UserContent(
                         authorName = user.username!!,
                         duration = secondsToMinutesSeconds(track.duration),
                         track = track,
-                        onTrackClick = { /* TODO */ },
-                        onMoreClick = { /* TODO */ }
+                        onTrackClick = { viewModel.playTrack(track, userLikesList) },
+                        onMoreClick = { onMoreTracksClick() }
                     )
                 }
             }
         }
     }
-
 }
 
 fun secondsToMinutesSeconds(seconds: Int): String {
     val minutes = seconds / 60
     val remainingSeconds = seconds % 60
     return String.format("%02d:%02d", minutes, remainingSeconds)
-}
-
-@Preview
-@Composable
-fun UserContentPreview() {
-    UserContent(
-        user = User(
-            userId = "1",
-            username = "User",
-            avatar = "https://www.example.com/image.jpg"
-        ),
-        userUploadsList = listOf(
-            Track(
-                trackId = "1",
-                title = "Track",
-                artistIds = listOf("1"),
-                duration = 180,
-                image = "https://www.example.com/image.jpg"
-            ),
-            Track(
-                trackId = "1",
-                title = "Track",
-                artistIds = listOf("1"),
-                duration = 180,
-                image = "https://www.example.com/image.jpg"
-            ),
-            Track(
-                trackId = "1",
-                title = "Track",
-                artistIds = listOf("1"),
-                duration = 180,
-                image = "https://www.example.com/image.jpg"
-            ),
-            Track(
-                trackId = "1",
-                title = "Track",
-                artistIds = listOf("1"),
-                duration = 180,
-                image = "https://www.example.com/image.jpg"
-            ),
-        ),
-        userPlaylistsList = listOf(
-            Playlist(
-                playlistId = "1",
-                title = "Playlist",
-                userId = "1",
-                image = "https://www.example.com/image.jpg"
-            ),
-            Playlist(
-                playlistId = "1",
-                title = "Playlist",
-                userId = "1",
-                image = "https://www.example.com/image.jpg"
-            ),
-            Playlist(
-                playlistId = "1",
-                title = "Playlist",
-                userId = "1",
-                image = "https://www.example.com/image.jpg"
-            ),
-            Playlist(
-                playlistId = "1",
-                title = "Playlist",
-                userId = "1",
-                image = "https://www.example.com/image.jpg"
-            ),
-        ),
-        userAlbumsList = listOf(
-            Playlist(
-                playlistId = "1",
-                title = "Album",
-                userId = "1",
-                image = "https://www.example.com/image.jpg"
-            )
-        ),
-        userLikesList = listOf(
-            Track(
-                trackId = "1",
-                title = "Track",
-                artistIds = listOf("1"),
-                duration = 180,
-                image = "https://www.example.com/image.jpg"
-            )
-        )
-    )
 }

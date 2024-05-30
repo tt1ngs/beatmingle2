@@ -11,9 +11,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.navigation.NavController
 import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.SearchField
@@ -31,6 +34,9 @@ fun LikedScreen(
     playerViewModel: PlayerViewModel,
     viewModel: LikedViewModel
 ) {
+
+    var showMenu by remember { mutableStateOf(false) }
+    var menuOffset by remember { mutableStateOf(Offset.Zero) }
 
     val likedTracks by viewModel.likedTracks.collectAsState()
     val user by viewModel.currentUser.collectAsState()
@@ -116,20 +122,81 @@ fun LikedScreen(
                         onTrackClick = {
                             try {
                                 playerViewModel.playTrack(track, likedTracks.subList(index + 1, likedTracks.size))
-
                             } catch (e: Exception) {
                                 Timber.tag("LibUploadScreen").e(e)
                             }
                         },
-                        onMoreClick = { /*TODO*/ }
+                        onMoreClick = { offset ->
+                            menuOffset = offset
+                            showMenu = true
+                        }
                     )
                     if (index >= likedTracks.size - 1) {
                         LaunchedEffect(likedTracks.size) {
                             viewModel.loadLikedTracks(user!!.userId, likedTracks.size + 20)
                         }
                     }
+                    val authorId = track.artistIds[0]
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        offset = menuOffset.toDpOffset()
+                    ) {
+                        if (user?.userId == authorId) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = stringResource(id = R.string.edit),
+                                        style = Typography.bodySmall
+                                    )
+                                },
+                                onClick = { /*TODO: EditModalBottomSheet*/ }
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(id = R.string.delete_or_add),
+                                    style = Typography.bodySmall
+                                )
+                            },
+                            onClick = { viewModel.toggleTrackInLibrary(track.trackId, user!!) }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(id = R.string.add_to_playlist),
+                                    style = Typography.bodySmall
+                                )
+                            },
+                            onClick = { /*TODO: Add to playlist*/ }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(id = R.string.authors_profile),
+                                    style = Typography.bodySmall
+                                )
+                            },
+                            onClick = {
+                                try {
+                                    navController.navigate("ProfileScreen/${authorId}")
+                                } catch (e: Exception) {
+                                    Timber.tag("LikedScreen").e(e)
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun Offset.toDpOffset(): DpOffset {
+    return DpOffset(
+        x = with(LocalDensity.current) { this@toDpOffset.x.toDp() },
+        y = with(LocalDensity.current) { this@toDpOffset.y.toDp() }
+    )
 }

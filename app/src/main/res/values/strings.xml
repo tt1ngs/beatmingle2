@@ -88,4 +88,10 @@
     <string name="select_albums">Select albums</string>
     <string name="create_album">Create Album</string>
     <string name="release">Release</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="profile_background">Profile Background</string>
+    <string name="edit">Edit</string>
+    <string name="delete_or_add">Delete/Add</string>
+    <string name="add_to_playlist">Add to playlist</string>
+    <string name="authors_profile">Author\'s profile</string>
 </resources>

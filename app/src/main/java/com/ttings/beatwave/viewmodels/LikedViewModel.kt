@@ -63,4 +63,19 @@ class LikedViewModel @Inject constructor(
         val remainingSeconds = seconds % 60
         return String.format("%02d:%02d", minutes, remainingSeconds)
     }
+
+    fun toggleTrackInLibrary(trackId: String, user: User) {
+        viewModelScope.launch {
+            try {
+                val isTrackLikedByUser = trackRepository.isTrackLikedByUser(trackId, user.userId)
+                if (isTrackLikedByUser) {
+                    trackRepository.removeTrackFromLibrary(trackId, user)
+                } else {
+                    trackRepository.addTrackToLibrary(trackId, user)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to toggle track in library")
+            }
+        }
+    }
 }
