@@ -1,8 +1,8 @@
 package com.ttings.beatwave.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
@@ -37,6 +37,60 @@ class SelectedPlaylistViewModel @Inject constructor(
 
     init {
         fetchCurrentUser()
+    }
+
+    fun updatePlaylistCover(playlistId: String, coverUri: Uri) {
+        viewModelScope.launch {
+            try {
+                playlistRepository.updatePlaylistCover(playlistId, coverUri)
+                loadPlaylist(playlistId)
+            } catch (e: Exception) {
+                Timber.tag("SelectedPlaylistViewModel").e(e, "Error updating playlist cover")
+            }
+        }
+    }
+
+    fun updatePlaylistName(playlistId: String, newName: String) {
+        viewModelScope.launch {
+            try {
+                playlistRepository.updatePlaylistName(playlistId, newName)
+                loadPlaylist(playlistId)
+            } catch (e: Exception) {
+                Timber.tag("SelectedPlaylistViewModel").e(e, "Error updating playlist name")
+            }
+        }
+    }
+
+    fun updatePlaylistPrivacy(playlistId: String, isPrivate: Boolean) {
+        viewModelScope.launch {
+            try {
+                playlistRepository.updatePlaylistPrivacy(playlistId, isPrivate)
+                loadPlaylist(playlistId)
+            } catch (e: Exception) {
+                Timber.tag("SelectedPlaylistViewModel").e(e, "Error updating playlist privacy")
+            }
+        }
+    }
+
+    fun deletePlaylist(playlistId: String) {
+        viewModelScope.launch {
+            try {
+                playlistRepository.deletePlaylist(playlistId)
+            } catch (e: Exception) {
+                Timber.tag("SelectedPlaylistViewModel").e(e, "Error deleting playlist")
+            }
+        }
+    }
+
+    fun deleteTrack(trackId: String, playlistId: String) {
+        viewModelScope.launch {
+            try {
+                playlistRepository.removeTrackFromPlaylist(trackId, playlistId)
+                loadPlaylistTracks(playlistId)
+            } catch (e: Exception) {
+                Timber.tag("SelectedPlaylistViewModel").e(e, "Error deleting track")
+            }
+        }
     }
 
     private fun fetchCurrentUser() {

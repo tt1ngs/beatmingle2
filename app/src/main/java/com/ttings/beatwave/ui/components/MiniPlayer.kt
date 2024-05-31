@@ -14,20 +14,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
-import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
+import com.ttings.beatwave.R
 import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
-import com.ttings.beatwave.ui.theme.BeatwaveTheme
 import com.ttings.beatwave.ui.theme.Typography
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -61,7 +59,14 @@ fun MiniPlayer(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Select a playlist") },
+            title = {
+                Text(
+                    text = stringResource(R.string.select_a_playlist),
+                    style = Typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
             text = {
                 LazyColumn {
                     items(playlists.size) { playlist ->
@@ -321,27 +326,5 @@ fun MiniPlayer(
                 }
             }
         }
-    }
-}
-
-@Preview
-@Composable
-fun MiniPlayerPreview() {
-    BeatwaveTheme {
-        MiniPlayer(
-            currentUser = User("1", "ms_denchik", "email", "password"),
-            track = Track("1", "Мини-плеер", "author", "image", "audio"),
-            playlists = emptyList(),
-            author = "ms_denchik",
-            isPlaying = false,
-            isLiked = false,
-            currentProgress = 0.5f,
-            onSelectedPlaylist = {},
-            onPlayPauseClicked = {},
-            onFavoriteClicked = {},
-            onNextTrack = {},
-            onPreviousTrack = {}
-        )
-
     }
 }

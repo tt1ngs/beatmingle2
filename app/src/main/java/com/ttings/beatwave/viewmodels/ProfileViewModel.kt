@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
+import com.ttings.beatwave.repositories.FeedRepository
 import com.ttings.beatwave.repositories.TrackRepository
 import com.ttings.beatwave.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val trackRepository: TrackRepository
+    private val trackRepository: TrackRepository,
+    private val feedRepository: FeedRepository
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -46,11 +48,15 @@ class ProfileViewModel @Inject constructor(
     private val _userLikes = MutableStateFlow<List<Track>>(emptyList())
     val userLikes = _userLikes.asStateFlow()
 
+    suspend fun getUserById(userId: String): User? {
+        return feedRepository.getAuthorById(userId)
+    }
+
     fun loadUser(userId: String) {
         viewModelScope.launch {
             _user.value = userRepository.getAuthorById(userId)
-            _followersCount.value = userRepository.getFollowersCount()
-            _followingCount.value = userRepository.getFollowingCount()
+            _followersCount.value = userRepository.getFollowersCount(userId)
+            _followingCount.value = userRepository.getFollowingCount(userId)
             _isFollowing.value = userRepository.isFollowing(userId)
             trackRepository.getTracksByUserUploads(userId).collect { _userUploads.value = it }
             trackRepository.getPlaylistsByUser(userId, "playlists", true).collect { _userPlaylists.value = it }

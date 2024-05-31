@@ -3,15 +3,13 @@ package com.ttings.beatwave.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -42,6 +40,10 @@ fun HomeScreen(
     val playlists by viewModel.playlists.observeAsState(initial = emptyList())
     val authors by viewModel.authors.observeAsState(initial = emptyList())
     val chunkedTracks = tracks.shuffled().chunked(3)
+
+    LaunchedEffect(Unit) {
+        viewModel.loadPlaylistsAndAuthors()
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -107,7 +109,7 @@ fun HomeScreen(
 
         Column {
             Text(
-                text = stringResource(id = R.string.home_mixes),
+                text = stringResource(id = R.string.playlists),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 20.dp, bottom = 20.dp),

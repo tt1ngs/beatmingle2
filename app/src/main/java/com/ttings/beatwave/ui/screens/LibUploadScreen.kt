@@ -116,11 +116,11 @@ fun LibUploadScreen(
                                 Timber.tag("LibUploadScreen").e(e)
                             }
                         },
-                        onMoreClick = { /*TODO*/ }
+                        onMoreClick = { /*TODO: onMoreClick() */ }
                     )
                     if (index >= tracks.size - 1) {
                         LaunchedEffect(tracks.size) {
-                            viewModel.loadUserUploads(user!!.userId, tracks.size + 20) //TODO
+                            viewModel.loadUserUploads(user!!.userId, tracks.size + 20) //TODO: rework
                         }
                     }
                 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">beatwave</string>
+    <string name="app_name" translatable="false">Beatmingle</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_up">Sign Up</string>
     <string name="email">Email</string>
@@ -91,7 +91,18 @@
     <string name="edit_profile">Edit Profile</string>
     <string name="profile_background">Profile Background</string>
     <string name="edit">Edit</string>
-    <string name="delete_or_add">Delete/Add</string>
+    <string name="delete_or_add">Delete/Add at ♥</string>
     <string name="add_to_playlist">Add to playlist</string>
     <string name="authors_profile">Author\'s profile</string>
+    <string name="select_a_playlist">Select a playlist</string>
+    <string name="delete_from_playlist">Delete from Playlist</string>
+    <string name="edit_playlist">Edit playlist</string>
+    <string name="cover">Cover</string>
+    <string name="playlist_name">Title</string>
+    <string name="delete">Delete</string>
+    <string name="delete_warning">Are you sure you want to delete the playlist? It will disappear forever without the
+        possibility of recovery.
+    </string>
+    <string name="warning">Warning!</string>
+    <string name="playlists">Playlists</string>
 </resources>

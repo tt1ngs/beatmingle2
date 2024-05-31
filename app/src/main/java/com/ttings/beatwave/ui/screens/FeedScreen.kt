@@ -24,11 +24,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.CommentBar
 import com.ttings.beatwave.ui.components.CustomTopAppBar
 import com.ttings.beatwave.ui.components.DataField
+import com.ttings.beatwave.ui.theme.Typography
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -37,6 +39,9 @@ fun FeedScreen(
     navController: NavController,
     viewModel: FeedViewModel = hiltViewModel()
 ) {
+
+    var selectedTrackId by remember { mutableStateOf<String?>(null) }
+    val currentUser by viewModel.currentUser.collectAsState()
 
     val commentString = stringResource(id = R.string.ur_comment)
 
@@ -47,9 +52,51 @@ fun FeedScreen(
     val commentScope = rememberCoroutineScope()
     val commentSheetState = rememberModalBottomSheetState()
 
-
     val tracks = viewModel.tracks.collectAsLazyPagingItems()
     val pagerState = rememberPagerState(pageCount = { tracks.itemCount })
+
+    var showDialog by remember { mutableStateOf(false) }
+    val playlists by viewModel.playlists
+
+    LaunchedEffect(currentUser) {
+        currentUser?.let {
+            viewModel.fetchUserPlaylists(it.userId)
+        }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.select_a_playlist),
+                    style = Typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                LazyColumn {
+                    items(playlists.size) { playlist ->
+                        val playlist = playlists[playlist]
+                        TextButton(
+                            onClick = {
+                                viewModel.addTrackToPlaylist(
+                                    trackId = selectedTrackId!!,
+                                    playlistId = playlist.playlistId
+                                )
+                                showDialog = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(playlist.title)
+                        }
+                    }
+                }
+            },
+            confirmButton = { }
+        )
+    }
 
     VerticalPager(state = pagerState) { page ->
         tracks[page]?.let { track ->
@@ -71,10 +118,8 @@ fun FeedScreen(
             val isFollowed by viewModel.isUserFollowed.collectAsState()
             val isPlaying by viewModel.isPlaying.collectAsState()
 
-            viewModel.getComments(track.trackId)
             currentTrack = track.trackId
 
-            // Остановка проигрывания трека при смене карточки
             DisposableEffect(track) {
                 onDispose {
                     if (viewModel.currentPlayingTrack == track) {
@@ -105,6 +150,7 @@ fun FeedScreen(
                 onCommentClick = {
                     isCommentSheetVisible = true
                     commentScope.launch {
+                        viewModel.loadComments(track.trackId)
                         commentSheetState.show()
                     }
                 },
@@ -123,108 +169,117 @@ fun FeedScreen(
                         viewModel.followUser(track.artistIds.first())
                     }
                 },
-                onAddToPlaylist = { /*TODO*/ },
+                onAddToPlaylist = {
+                    showDialog = true
+                    selectedTrackId = track.trackId
+                },
                 author = author ?: User("")
             )
-        }
-    }
 
+            if (isCommentSheetVisible) {
+                val comments by viewModel.comments.collectAsState()
+                Timber.tag("Comments").d("Comments: $comments")
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        isCommentSheetVisible = false
+                        commentScope.launch {
+                            commentSheetState.hide()
+                        }
+                    },
+                    sheetState = commentSheetState,
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
 
-    // Не меняется trackId при смене карточки, комментарии записываются в чужие треки
-    if (isCommentSheetVisible) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                isCommentSheetVisible = false
-            },
-            sheetState = commentSheetState,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-
-                CustomTopAppBar(
-                    title = stringResource(R.string.comments),
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                isCommentSheetVisible = false
-                                commentScope.launch {
-                                    commentSheetState.hide()
+                        CustomTopAppBar(
+                            title = stringResource(R.string.comments),
+                            navigationIcon = {
+                                IconButton(
+                                    onClick = {
+                                        isCommentSheetVisible = false
+                                        commentScope.launch {
+                                            commentSheetState.hide()
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Close,
+                                        contentDescription = "Close",
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
                                 }
                             }
+                        )
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(600.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Close,
-                                contentDescription = "Close",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                )
-
-                val comments by viewModel.comments.collectAsState()
-                Timber.tag("FeedScreen").d("Comments: $comments")
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(600.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    try {
-                        items(comments.size) { index ->
-                            val comment = comments[index]
-                            val user by produceState<User?>(initialValue = null) {
-                                value = viewModel.getUserById(comment.userId)
-                            }
-                            if (user != null) {
-                                CommentBar(user = user!!, comment = comment.comment)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Timber.tag("FeedScreen").e(e, "Error getting comments")
-                    }
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(horizontal = 10.dp, vertical = 25.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    DataField(
-                        value = comment,
-                        onValueChange = { comment = it },
-                        label = commentString,
-                        topPadding = 0,
-                        width = 280
-                    )
-                    IconButton(
-                        onClick = {
                             try {
-                                currentTrack.let { track ->
-                                    viewModel.addComment(track, comment)
+                                items(comments.size) { index ->
+                                    val comment = comments[index]
+                                    val user by produceState<User?>(initialValue = null) {
+                                        value = viewModel.getUserById(comment.userId)
+                                    }
+                                    if (user != null) {
+                                        CommentBar(
+                                            user = user!!,
+                                            comment = comment.comment,
+                                            onUserClick = {
+                                                navController.navigate("ProfileScreen/${user?.userId}")
+                                            }
+                                        )
+                                    }
                                 }
                             } catch (e: Exception) {
-                                Timber.tag("FeedScreen").e(e, "Error adding comment")
+                                Timber.tag("FeedScreen").e(e, "Error getting comments")
                             }
-                        },
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .background(
-                                MaterialTheme.colorScheme.secondaryContainer,
-                                RoundedCornerShape(50)
-                            )
+                        }
 
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Send,
-                            contentDescription = "Send",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .padding(horizontal = 10.dp, vertical = 25.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            DataField(
+                                value = comment,
+                                onValueChange = { comment = it },
+                                label = commentString,
+                                topPadding = 0,
+                                width = 280
+                            )
+                            IconButton(
+                                onClick = {
+                                    try {
+                                        currentTrack.let { track ->
+                                            viewModel.addComment(track, comment)
+                                        }
+                                    } catch (e: Exception) {
+                                        Timber.tag("FeedScreen").e(e, "Error adding comment")
+                                    }
+                                },
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.secondaryContainer,
+                                        RoundedCornerShape(50)
+                                    )
+
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Send,
+                                    contentDescription = "Send",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
                     }
                 }
             }

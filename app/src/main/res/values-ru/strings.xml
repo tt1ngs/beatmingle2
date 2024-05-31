@@ -94,7 +94,18 @@
     <string name="edit_profile">Редактировать профиль</string>
     <string name="profile_background">Фон профиля</string>
     <string name="edit">Редактировать</string>
-    <string name="delete_or_add">Удалить/Добавить</string>
+    <string name="delete_or_add">Удалить/Добавить в ♥</string>
     <string name="add_to_playlist">Добавить в плейлист</string>
     <string name="authors_profile">Профиль автора</string>
+    <string name="select_a_playlist">Выберите плейлист</string>
+    <string name="delete_from_playlist">Удалить из плейлиста</string>
+    <string name="edit_playlist">Управление плейлистом</string>
+    <string name="cover">Обложка</string>
+    <string name="playlist_name">Название</string>
+    <string name="delete">Удалить</string>
+    <string name="delete_warning">Вы уверены что хотите удалить плейлист? Он исчезнет навсегда без возможности
+        восстановления.
+    </string>
+    <string name="warning">Предупреждение</string>
+    <string name="playlists">Плейлисты</string>
 </resources>

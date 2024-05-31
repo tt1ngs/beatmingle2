@@ -2,7 +2,6 @@ package com.ttings.beatwave.repositories
 
 import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -57,56 +56,34 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun getFollowersCount(): Int = suspendCoroutine { continuation ->
-        val user = auth.currentUser
-        if (user != null) {
-            val reference = database.getReference("subscriptions")
-            reference.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    var count = 0
-                    for (snapshot in dataSnapshot.children) {
-                        val followedUserId = snapshot.child("followedUserId").getValue(String::class.java)
-                        if (followedUserId == user.uid) {
-                            count++
-                        }
-                    }
-                    continuation.resume(count)
-                }
+    suspend fun getFollowersCount(userId: String): Int = suspendCoroutine { continuation ->
+        val reference = database.getReference("subscriptions")
+        reference.orderByChild("followedUserId").equalTo(userId).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val count = dataSnapshot.childrenCount.toInt()
+                continuation.resume(count)
+            }
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Timber.tag("Firebase error").e(databaseError.message)
-                    continuation.resume(0)
-                }
-            })
-        } else {
-            continuation.resume(0)
-        }
+            override fun onCancelled(databaseError: DatabaseError) {
+                Timber.tag("Firebase error").e(databaseError.message)
+                continuation.resume(0)
+            }
+        })
     }
 
-    suspend fun getFollowingCount(): Int = suspendCoroutine { continuation ->
-        val user = auth.currentUser
-        if (user != null) {
-            val reference = database.getReference("subscriptions")
-            reference.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    var count = 0
-                    for (snapshot in dataSnapshot.children) {
-                        val userId = snapshot.child("userId").getValue(String::class.java)
-                        if (userId == user.uid) {
-                            count++
-                        }
-                    }
-                    continuation.resume(count)
-                }
+    suspend fun getFollowingCount(currentUserId: String): Int = suspendCoroutine { continuation ->
+        val reference = database.getReference("subscriptions")
+        reference.orderByChild("userId").equalTo(currentUserId).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val count = dataSnapshot.childrenCount.toInt()
+                continuation.resume(count)
+            }
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Timber.tag("Firebase error").e(databaseError.message)
-                    continuation.resume(0)
-                }
-            })
-        } else {
-            continuation.resume(0)
-        }
+            override fun onCancelled(databaseError: DatabaseError) {
+                Timber.tag("Firebase error").e(databaseError.message)
+                continuation.resume(0)
+            }
+        })
     }
 
     suspend fun followUser(userId: String) {

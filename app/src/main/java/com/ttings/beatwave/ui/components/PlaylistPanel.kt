@@ -33,6 +33,7 @@ fun PlaylistPanel(
     username: String,
     onLikeClick: () -> Unit,
     onShuffleClick: () -> Unit,
+    onMoreClick: () -> Unit,
     onPlayClick: () -> Unit,
     onUserClick: () -> Unit
 
@@ -79,7 +80,7 @@ fun PlaylistPanel(
                         text = "${if (playlist.isPrivate) stringResource(id = R.string.privacy_private) else stringResource(
                             id = R.string.privacy_public)} • $trackCount ${stringResource(id = R.string.tracks)} • $playlistDuration",
                         style = Typography.bodySmall,
-                        modifier = Modifier.clickable(onClick = { TODO() })
+//                        modifier = Modifier.clickable(onClick = { TODO(): --- })
                     )
                 }
                 Row(
@@ -128,7 +129,7 @@ fun PlaylistPanel(
                 }
                 if (currentUser.userId == playlist.userId) {
                     IconButton(
-                        onClick = { /*TODO*/ },
+                        onClick = { onMoreClick() },
                         modifier = Modifier.padding(start = 45.dp)
                     ) {
                         Icon(

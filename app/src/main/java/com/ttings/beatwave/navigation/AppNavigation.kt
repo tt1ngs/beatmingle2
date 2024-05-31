@@ -179,6 +179,20 @@ fun AppNavigation() {
                     // Обработка ошибки, если albumId не предоставлен
                 }
             }
+            composable("SelectedUserItems/{userId}/{type}") { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                val type = backStackEntry.arguments?.getString("type")?.toIntOrNull()
+                if (userId != null && type != null) {
+                    SelectedUserItems(
+                        navController = navController,
+                        userId = userId,
+                        nameOfItems = type,
+                        playerViewModel = playerViewModel
+                    )
+                } else {
+                    // Обработка ошибки, если userId или type не предоставлены
+                }
+            }
         }
     }
 }

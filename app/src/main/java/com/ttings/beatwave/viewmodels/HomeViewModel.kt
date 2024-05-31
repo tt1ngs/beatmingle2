@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
-import com.ttings.beatwave.repositories.FirebaseAlbumsRepository
 import com.ttings.beatwave.repositories.FirebasePlaylistRepository
 import com.ttings.beatwave.repositories.TrackRepository
 import com.ttings.beatwave.repositories.UserRepository
@@ -17,10 +16,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    trackRepository: TrackRepository,
-    userRepository: UserRepository,
-    albumsRepository: FirebaseAlbumsRepository,
-    playlistRepository: FirebasePlaylistRepository
+    private val trackRepository: TrackRepository,
+    private val userRepository: UserRepository,
+    private val playlistRepository: FirebasePlaylistRepository
 ) : ViewModel() {
 
     val tracks = MutableLiveData<List<Track>>()
@@ -28,13 +26,18 @@ class HomeViewModel @Inject constructor(
     val authors = MutableLiveData<List<User>>()
 
     init {
-        viewModelScope.launch {
-            tracks.postValue(trackRepository.getPublicTracks())
-            playlists.postValue(playlistRepository.getPublicPlaylists())
-            authors.postValue(userRepository.getAuthors())
-            Timber.tag("HomeViewModel").d("Playlists: ${playlists.value}")
-            Timber.tag("HomeViewModel").d("authors: ${authors.value}")
-        }
+        loadTracks()
+    }
+
+    private fun loadTracks() = viewModelScope.launch {
+        tracks.postValue(trackRepository.getPublicTracks())
+    }
+
+    fun loadPlaylistsAndAuthors() = viewModelScope.launch {
+        playlists.postValue(playlistRepository.getPublicPlaylists())
+        authors.postValue(userRepository.getAuthors())
+        Timber.tag("HomeViewModel").d("Playlists: ${playlists.value}")
+        Timber.tag("HomeViewModel").d("authors: ${authors.value}")
     }
 
     fun secondsToMinutesSeconds(seconds: Int): String {

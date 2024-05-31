@@ -19,6 +19,11 @@ class AuthRepository @Inject constructor(
     private val context: Context
 ) {
 
+    fun signOut() {
+        auth.signOut()
+        saveAuthState(false)
+    }
+
     fun saveAuthState(isLoggedIn: Boolean) {
         val sharedPreferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()

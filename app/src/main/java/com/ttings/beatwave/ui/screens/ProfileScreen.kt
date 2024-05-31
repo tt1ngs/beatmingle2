@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -106,10 +105,10 @@ fun ProfileScreen(
                     userPlaylistsList = viewModel.userPlaylists.collectAsState().value,
                     userAlbumsList = viewModel.userAlbums.collectAsState().value,
                     userLikesList = viewModel.userLikes.collectAsState().value,
-                    onMoreTracksClick = { },
-                    onMorePlaylistsClick = { },
-                    onMoreAlbumsClick = { },
-                    onMoreLikesClick = { },
+                    onMoreTracksClick = { navController.navigate("SelectedUserItems/${userId}/${0}") },
+                    onMorePlaylistsClick = { navController.navigate("SelectedUserItems/${userId}/${1}") },
+                    onMoreAlbumsClick = { navController.navigate("SelectedUserItems/${userId}/${2}") },
+                    onMoreLikesClick = { navController.navigate("SelectedUserItems/${userId}/${3}") },
                     viewModel = playerViewModel,
                     navController = navController
                 )

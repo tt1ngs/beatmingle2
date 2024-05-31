@@ -119,7 +119,7 @@ fun SignUpScreen(
                     }
                 },
                 text = stringResource(R.string.sign_up),
-                topPadding = 220
+                topPadding = 340
             )
         }
         Box(modifier = Modifier.fillMaxSize()) {

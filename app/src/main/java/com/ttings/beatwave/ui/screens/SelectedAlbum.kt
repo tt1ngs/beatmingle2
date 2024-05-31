@@ -3,18 +3,14 @@ package com.ttings.beatwave.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.type.DateTime
-import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.*
 import com.ttings.beatwave.viewmodels.PlayerViewModel
 import com.ttings.beatwave.viewmodels.SelectedAlbumViewModel
@@ -106,6 +102,7 @@ fun SelectedAlbum(
                         onPlayClick = {
                             playerViewModel.playTrack(albumTracks[0], albumTracks)
                         },
+                        onMoreClick = {},
                         onUserClick = {
                             if (user != null) {
                                 val userId = user!!.userId
@@ -136,7 +133,7 @@ fun SelectedAlbum(
                         )
                         if (index >= tracks.size - 1) {
                             LaunchedEffect(tracks.size) {
-                                // TODO
+                                // TODO: rework queue
                             }
                         }
                     }

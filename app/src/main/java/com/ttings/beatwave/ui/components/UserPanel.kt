@@ -20,7 +20,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.ttings.beatwave.R
@@ -165,21 +164,4 @@ fun UserPanel(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun UserPanelPreview() {
-    UserPanel(
-        user = User(
-            userId = "0",
-            username = "Username",
-            background = "https://example.com/image.jpg",
-            avatar = "https://example.com/image.jpg"
-        ),
-        currenUserId = "0",
-        isFollowed = true,
-        following = "0",
-        followers = "0"
-    )
 }

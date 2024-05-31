@@ -20,12 +20,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.ttings.beatwave.R
 import com.ttings.beatwave.data.Track
-import com.ttings.beatwave.ui.theme.LightGray
 import com.ttings.beatwave.ui.theme.Typography
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -94,7 +92,7 @@ fun TrackBar(
                     modifier = Modifier.size(15.dp))
 
                 Text(
-                    text = "0   $duration", //TODO
+                    text = "0   $duration", //TODO: listenersCount
                     style = Typography.bodySmall,
                     modifier = Modifier.padding(start = 17.dp, top = 2.dp)
                 )

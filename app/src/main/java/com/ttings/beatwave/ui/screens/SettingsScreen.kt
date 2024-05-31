@@ -2,7 +2,6 @@ package com.ttings.beatwave.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.*
@@ -10,19 +9,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ttings.beatwave.R
 import com.ttings.beatwave.ui.components.CustomTopAppBar
 import com.ttings.beatwave.ui.theme.Typography
+import com.ttings.beatwave.viewmodels.AuthViewModel
 import com.ttings.beatwave.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
+    authViewModel: AuthViewModel = hiltViewModel(),
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
 
@@ -110,7 +110,10 @@ fun SettingsScreen(
 
         TextButton(
             modifier = Modifier.fillMaxWidth(),
-            onClick = { TODO() }
+            onClick = {
+                authViewModel.signOut()
+                navController.popBackStack()
+            }
         ) {
             Text(
                 text = stringResource(R.string.logout),

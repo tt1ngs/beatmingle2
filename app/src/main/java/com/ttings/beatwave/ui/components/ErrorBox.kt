@@ -11,7 +11,6 @@ import com.ttings.beatwave.ui.theme.Typography
 @Composable
 fun ErrorBox(
     errorMessage: String,
-    bottomPadding: Int = 0,
     onDismiss: () -> Unit,
     onConfirmation: () -> Unit
 ) {
@@ -26,7 +25,7 @@ fun ErrorBox(
         },
         title = {
             Text(
-                text = stringResource(id = R.string.error),
+                text = stringResource(id = R.string.warning),
                 style = Typography.bodyMedium
             )
         },

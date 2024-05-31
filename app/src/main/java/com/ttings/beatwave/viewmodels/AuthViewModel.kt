@@ -19,6 +19,10 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
     val uiState: MutableStateFlow<AuthState> = MutableStateFlow(AuthState.Empty)
 
+    fun signOut() {
+        authRepository.signOut()
+    }
+
     fun isLoggedIn(): Flow<Boolean> {
         return authRepository.getAuthState()
     }

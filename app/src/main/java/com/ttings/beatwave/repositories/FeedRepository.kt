@@ -43,7 +43,7 @@ class FeedRepository @Inject constructor(
     fun getComments(trackId: String): Flow<List<Comment>> {
         return callbackFlow {
             try {
-                val listener = database.getReference("tracks").child(trackId).child("comments")
+                val listener = database.getReference("track").child(trackId).child("comments")
                     .addValueEventListener(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
                             val comments = snapshot.children.mapNotNull {
@@ -83,7 +83,7 @@ class FeedRepository @Inject constructor(
             val snapshot = database.getReference("users").child(userId).get().await()
             snapshot.getValue(User::class.java)
         } catch (e: Exception) {
-            Timber.tag("UserRepository").e(e, "Error getting user by id")
+            Timber.tag("UserRepository").e(e, "Error getting author by id")
             null
         }
     }

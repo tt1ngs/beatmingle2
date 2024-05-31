@@ -2,15 +2,18 @@ package com.ttings.beatwave.viewmodels
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import com.ttings.beatwave.data.Comment
+import com.ttings.beatwave.data.Playlist
 import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.repositories.FeedRepository
+import com.ttings.beatwave.repositories.FirebasePlaylistRepository
+import com.ttings.beatwave.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,9 +23,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    private val feedRepository: FeedRepository
+    private val feedRepository: FeedRepository,
+    private val userRepository: UserRepository,
+    private val playlistRepository: FirebasePlaylistRepository
 ) : ViewModel() {
+
     val tracks = feedRepository.getTracks().cachedIn(viewModelScope)
+
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
     private var mediaPlayer: MediaPlayer? = null
     var currentPlayingTrack: Track? = null
@@ -39,15 +48,51 @@ class FeedViewModel @Inject constructor(
     private val _comments = MutableStateFlow<List<Comment>>(emptyList())
     val comments: StateFlow<List<Comment>> = _comments.asStateFlow()
 
+    val playlists = mutableStateOf(listOf<Playlist>())
+
+    init {
+        fetchCurrentUser()
+    }
+
+    fun addTrackToPlaylist(trackId: String, playlistId: String) {
+        viewModelScope.launch {
+            playlistRepository.addTrackToPlaylist(trackId, playlistId)
+        }
+    }
+
+    private fun fetchCurrentUser() {
+        viewModelScope.launch {
+            userRepository.getCurrentUser()?.let {
+                _currentUser.value = it
+            }
+        }
+    }
+
+    fun fetchUserPlaylists(userId: String) {
+        viewModelScope.launch {
+            playlists.value = getUserPlaylists(userId)
+        }
+    }
+
+    suspend fun getUserPlaylists(userId: String): List<Playlist> {
+        return playlistRepository.getUserPlaylists(userId)
+    }
+
     fun addComment(trackId: String, comment: String) {
         viewModelScope.launch {
             try {
                 feedRepository.addComment(trackId, comment)
-                getComments(trackId).collect {
-                    _comments.value = it
-                }
+                loadComments(trackId)
             } catch (e: Exception) {
                 Timber.tag("FeedViewModel").e(e, "Error adding comment")
+            }
+        }
+    }
+
+    fun loadComments(trackId: String) {
+        viewModelScope.launch {
+            feedRepository.getComments(trackId).collect { newComments ->
+                _comments.value = newComments
             }
         }
     }
@@ -61,10 +106,6 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun getComments(trackId: String): Flow<List<Comment>> {
-        return feedRepository.getComments(trackId)
-    }
-
     suspend fun updateLikeState(trackId: String) {
         _isTrackLiked.value = isLiked(trackId)
     }
@@ -73,7 +114,6 @@ class FeedViewModel @Inject constructor(
         _isUserFollowed.value = isFollowed(userId)
     }
 
-    // Проверка наличия текущего трека перед воспроизведением
     fun startPlayback(track: Track) {
         if (currentPlayingTrack == null) {
             currentPlayingTrack = track
@@ -83,14 +123,13 @@ class FeedViewModel @Inject constructor(
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .build())
                 setDataSource(track.file)
-                prepareAsync() // Используем асинхронную подготовку
+                prepareAsync()
                 setOnPreparedListener {
                     start()
                     _isPlaying.value = true
                 }
             }
         } else if (currentPlayingTrack != track) {
-            // Если текущий трек не совпадает с треком для воспроизведения, останавливаем проигрывание и воспроизводим новый трек
             stopPlayback()
             startPlayback(track)
         } else {
@@ -106,7 +145,6 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    // Остановка воспроизведения трека
     fun stopPlayback() {
         mediaPlayer?.stop()
         mediaPlayer?.release()
@@ -115,14 +153,13 @@ class FeedViewModel @Inject constructor(
         _isPlaying.value = false
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        mediaPlayer?.release()
-        mediaPlayer = null
-    }
-
-    suspend fun getAuthorById(id: String): User? {
-        return feedRepository.getAuthorById(id)
+    private suspend fun isLiked(trackId: String): Boolean {
+        return try {
+            feedRepository.isLiked(trackId)
+        } catch (e: Exception) {
+            Timber.tag("FeedViewModel").e(e, "Error checking if track is liked")
+            false
+        }
     }
 
     fun addTrackToLibrary(trackId: String) {
@@ -131,7 +168,7 @@ class FeedViewModel @Inject constructor(
                 feedRepository.addTrackToLibrary(trackId)
                 updateLikeState(trackId)
             } catch (e: Exception) {
-                Timber.tag("FeedViewModel").e(e, "Error liking track")
+                Timber.tag("FeedViewModel").e(e, "Error adding track to library")
             }
         }
     }
@@ -142,9 +179,14 @@ class FeedViewModel @Inject constructor(
                 feedRepository.deleteTrackFromLibrary(trackId)
                 updateLikeState(trackId)
             } catch (e: Exception) {
-                Timber.tag("FeedViewModel").e(e, "Error unliking track")
+                Timber.tag("FeedViewModel").e(e, "Error deleting track from library")
             }
         }
+    }
+
+    private suspend fun isFollowed(userId: String): Boolean {
+        _isUserFollowed.value = feedRepository.isFollowing(userId)
+        return feedRepository.isFollowing(userId)
     }
 
     fun followUser(userId: String) {
@@ -169,13 +211,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    private suspend fun isFollowed(userId: String): Boolean {
-        _isUserFollowed.value = feedRepository.isFollowing(userId)
-        return feedRepository.isFollowing(userId)
-    }
-
-    private suspend fun isLiked(trackId: String): Boolean {
-        _isTrackLiked.value = feedRepository.isLiked(trackId)
-        return feedRepository.isLiked(trackId)
+    suspend fun getAuthorById(id: String): User? {
+        return feedRepository.getAuthorById(id)
     }
 }

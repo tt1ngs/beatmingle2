@@ -2,6 +2,7 @@ package com.ttings.beatwave.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,7 @@ fun LikedScreen(
     playerViewModel: PlayerViewModel,
     viewModel: LikedViewModel
 ) {
+    var selectedTrackId by remember { mutableStateOf<String?>(null) }
 
     var showMenu by remember { mutableStateOf(false) }
     var menuOffset by remember { mutableStateOf(Offset.Zero) }
@@ -41,12 +43,49 @@ fun LikedScreen(
     val likedTracks by viewModel.likedTracks.collectAsState()
     val user by viewModel.currentUser.collectAsState()
 
+    var showDialog by remember { mutableStateOf(false) }
+    val playlists by playerViewModel.playlists
+
     LaunchedEffect(user) {
         user?.userId?.let {
             if (likedTracks.isEmpty()) {
                 viewModel.loadLikedTracks(it)
             }
         }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.select_a_playlist),
+                    style = Typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                LazyColumn {
+                    items(playlists.size) { playlist ->
+                        val playlist = playlists[playlist]
+                        TextButton(
+                            onClick = {
+                                playerViewModel.addTrackToPlaylist(
+                                    trackId = selectedTrackId!!,
+                                    playlistId = playlist.playlistId
+                                )
+                                showDialog = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(playlist.title)
+                        }
+                    }
+                }
+            },
+            confirmButton = { }
+        )
     }
 
     var authorNames by remember { mutableStateOf(mapOf<String, String>()) }
@@ -128,6 +167,7 @@ fun LikedScreen(
                         },
                         onMoreClick = { offset ->
                             menuOffset = offset
+                            selectedTrackId = track.trackId
                             showMenu = true
                         }
                     )
@@ -169,7 +209,9 @@ fun LikedScreen(
                                     style = Typography.bodySmall
                                 )
                             },
-                            onClick = { /*TODO: Add to playlist*/ }
+                            onClick = {
+                                showDialog = true
+                            }
                         )
                         DropdownMenuItem(
                             text = {

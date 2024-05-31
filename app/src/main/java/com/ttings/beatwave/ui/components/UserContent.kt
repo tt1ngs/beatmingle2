@@ -5,11 +5,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ttings.beatwave.R
 import com.ttings.beatwave.data.Playlist
@@ -17,6 +19,8 @@ import com.ttings.beatwave.data.Track
 import com.ttings.beatwave.data.User
 import com.ttings.beatwave.ui.theme.Typography
 import com.ttings.beatwave.viewmodels.PlayerViewModel
+import com.ttings.beatwave.viewmodels.ProfileViewModel
+import timber.log.Timber
 
 @Composable
 fun UserContent(
@@ -29,6 +33,7 @@ fun UserContent(
     onMoreAlbumsClick: () -> Unit = {}, // TODO
     onMorePlaylistsClick: () -> Unit = {}, // TODO
     onMoreLikesClick: () -> Unit = {}, // TODO
+    profileViewModel: ProfileViewModel = hiltViewModel(),
     viewModel: PlayerViewModel,
     navController: NavController
 ) {
@@ -67,8 +72,16 @@ fun UserContent(
             ) {
                 // Три последних загруженных трека
                 userUploadsList.takeLast(3).forEach { track ->
+                    val author by produceState<User?>(initialValue = null) {
+                        try {
+                            value = viewModel.getAuthorById(track.artistIds.first())
+                        } catch (e: Exception) {
+                            Timber.tag("TrackCard").e(e, "Error getting author")
+                            value = null
+                        }
+                    }
                     TrackBar(
-                        authorName = user.username!!,
+                        authorName = author?.username ?: "",
                         duration = secondsToMinutesSeconds(track.duration),
                         track = track,
                         onTrackClick = { viewModel.playTrack(track, userUploadsList) },
@@ -109,9 +122,17 @@ fun UserContent(
                 // Три последних загруженных трека
                 items(userAlbumsList.takeLast(3).size) { index ->
                     val playlist = userAlbumsList.takeLast(3)[index]
+                    val author by produceState<User?>(initialValue = null) {
+                        try {
+                            value = viewModel.getAuthorById(playlist.userId)
+                        } catch (e: Exception) {
+                            Timber.tag("TrackCard").e(e, "Error getting author")
+                            value = null
+                        }
+                    }
                     PlaylistBar(
                         playlistName = playlist.title,
-                        authorName = user.username!!,
+                        authorName = author?.username ?: "",
                         playlistImage = playlist.image,
                         onPlaylistClick = { navController.navigate("SelectedAlbum/${playlist.playlistId}") }
                     )
@@ -149,9 +170,17 @@ fun UserContent(
             LazyRow() {
                 items(userPlaylistsList.takeLast(3).size) { index ->
                     val playlist = userPlaylistsList.takeLast(3)[index]
+                    val author by produceState<User?>(initialValue = null) {
+                        try {
+                            value = viewModel.getAuthorById(playlist.userId)
+                        } catch (e: Exception) {
+                            Timber.tag("TrackCard").e(e, "Error getting author")
+                            value = null
+                        }
+                    }
                     PlaylistBar(
                         playlistName = playlist.title,
-                        authorName = user.username!!,
+                        authorName = author?.username ?: "",
                         playlistImage = playlist.image,
                         onPlaylistClick = { navController.navigate("SelectedPlaylist/${playlist.playlistId}") }
                     )
@@ -191,8 +220,16 @@ fun UserContent(
             ) {
                 // Три последних лайкнутых трека
                 userLikesList.takeLast(3).forEach { track ->
+                    val author by produceState<User?>(initialValue = null) {
+                        try {
+                            value = viewModel.getAuthorById(track.artistIds.first())
+                        } catch (e: Exception) {
+                            Timber.tag("TrackCard").e(e, "Error getting author")
+                            value = null
+                        }
+                    }
                     TrackBar(
-                        authorName = user.username!!,
+                        authorName = author?.username ?: "",
                         duration = secondsToMinutesSeconds(track.duration),
                         track = track,
                         onTrackClick = { viewModel.playTrack(track, userLikesList) },

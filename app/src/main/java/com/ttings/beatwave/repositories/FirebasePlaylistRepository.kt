@@ -1,5 +1,6 @@
 package com.ttings.beatwave.repositories
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import com.google.firebase.Firebase
 import com.google.firebase.database.*
@@ -49,6 +50,25 @@ class FirebasePlaylistRepository @Inject constructor(
         } catch (e: Exception) {
             Timber.tag("FirebasePlaylistRepository").e(e, "Error creating playlist")
         }
+    }
+
+    suspend fun updatePlaylistCover(playlistId: String, coverUri: Uri) {
+        val imageUrl = uploadImage(coverUri)
+        firebaseDatabase.getReference("playlists").child(playlistId).updateChildren(mapOf(
+            "image" to imageUrl
+        ))
+    }
+
+    suspend fun updatePlaylistName(playlistId: String, name: String) {
+        firebaseDatabase.getReference("playlists").child(playlistId).updateChildren(mapOf(
+            "title" to name
+        ))
+    }
+
+    suspend fun updatePlaylistPrivacy(playlistId: String, isPrivate: Boolean) {
+        firebaseDatabase.getReference("playlists").child(playlistId).updateChildren(mapOf(
+            "private" to isPrivate
+        ))
     }
 
     // Понравившийся плейлист записывается в базу данных следующим образом:
@@ -142,15 +162,27 @@ class FirebasePlaylistRepository @Inject constructor(
         }
     }
 
-    suspend fun updatePlaylist(playlist: Playlist) {
-        firebaseDatabase.getReference("playlists").child(playlist.playlistId).updateChildren(mapOf(
-            "title" to playlist.title,
-            "image" to playlist.image,
-            "userId" to playlist.userId,
-            "tracks" to playlist.tracks,
-            "isPinned" to playlist.isPinned,
-            "isPrivate" to playlist.isPrivate
-        ))
+    suspend fun deletePlaylist(playlistId: String) {
+        try {
+            // Удаление плейлиста из основного хранилища плейлистов
+            firebaseDatabase.getReference("playlists").child(playlistId).removeValue().await()
+
+            // Удаление плейлиста из списка загруженных плейлистов пользователя
+            val currentUser = userRepository.getCurrentUser() ?: return
+            val userUploadsRef = firebaseDatabase.getReference("users").child(currentUser.userId).child("uploads").child("playlists")
+            val snapshot = userUploadsRef.get().await()
+            val playlistIds = snapshot.getValue<MutableList<String>>() ?: mutableListOf()
+            if (playlistId in playlistIds) {
+                playlistIds.remove(playlistId)
+                userUploadsRef.setValue(playlistIds).await()
+            }
+
+            // Удаление плейлиста из списка понравившихся плейлистов всех пользователей
+            val likesRef = firebaseDatabase.getReference("likes").child(playlistId)
+            likesRef.removeValue().await()
+        } catch (e: Exception) {
+            Timber.tag("FirebasePlaylistRepository").e(e, "Error deleting playlist")
+        }
     }
 
     suspend fun getPlaylistTracks(playlistId: String): List<Track> {
@@ -245,6 +277,45 @@ class FirebasePlaylistRepository @Inject constructor(
             }
         }
     }
+
+    @SuppressLint("RestrictedApi")
+    suspend fun removeTrackFromPlaylist(trackId: String, playlistId: String, onlyUserTracks: Boolean = false) {
+        val playlistRef = if (onlyUserTracks) {
+            firebaseDatabase.getReference("albums").child(playlistId).child("tracks")
+        } else {
+            firebaseDatabase.getReference("playlists").child(playlistId).child("tracks")
+        }
+
+        // Логгирование пути к данным для отладки
+        Timber.tag("FirebasePlaylistRepository").d("Playlist reference path: ${playlistRef.path}")
+
+        val snapshot = playlistRef.get().await()
+
+        // Логгирование наличия данных в снимке
+        Timber.tag("FirebasePlaylistRepository").d("Snapshot exists: ${snapshot.exists()}")
+
+        if (snapshot.exists()) {
+            // Получение данных как Map<String, String>
+            val trackMap = snapshot.getValue(object : GenericTypeIndicator<HashMap<String, String>>() {}) ?: hashMapOf()
+
+            // Логгирование содержимого trackMap для отладки
+            Timber.tag("FirebasePlaylistRepository").d("Track map: $trackMap")
+
+            // Проверка, есть ли трек в плейлисте
+            if (trackId in trackMap.values) {
+                // Если трек есть в плейлисте, удалить его
+                val trackToRemove = trackMap.filterValues { it == trackId }.keys.first()
+                playlistRef.child(trackToRemove).removeValue().await()
+                Timber.tag("FirebasePlaylistRepository").d("Track $trackId removed from playlist $playlistId")
+            } else {
+                Timber.tag("FirebasePlaylistRepository").e("Track $trackId is not in playlist $playlistId")
+            }
+        } else {
+            Timber.tag("FirebasePlaylistRepository").e("Snapshot is empty for path: ${playlistRef.path}")
+        }
+    }
+
+
 
     suspend fun isPlaylistLiked(userId: String, playlistId: String): Boolean {
         val reference = firebaseDatabase.getReference("users").child(userId).child("likedPlaylists")
