@@ -27,7 +27,7 @@ object FirebaseModule {
 
     @Provides
     fun provideFirebaseDatabase(): FirebaseDatabase {
-        return FirebaseDatabase.getInstance("https://beatmingle-b4205-default-rtdb.europe-west1.firebasedatabase.app")
+        return FirebaseDatabase.getInstance("https://beatmingle-d9f97-default-rtdb.europe-west1.firebasedatabase.app")
     }
 
     @Provides
